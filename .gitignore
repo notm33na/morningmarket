@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+blueprints/raw/
+tests/previews/
+node_modules/
+.vercel/
+*.log
+*.sa.json
+service-account*.json
+marketmorning-*.json

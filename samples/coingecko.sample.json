@@ -1,0 +1,8 @@
+{
+  "bitcoin": { "usd": 121350.42, "usd_24h_change": 1.1234, "last_updated_at": 1791201300 },
+  "ethereum": { "usd": 4512.1, "usd_24h_change": -0.8517, "last_updated_at": 1791201300 },
+  "solana": { "usd": 231.77, "usd_24h_change": 3.4021, "last_updated_at": 1791201300 },
+  "ripple": { "usd": 2.84315, "usd_24h_change": -1.2049, "last_updated_at": 1791201300 },
+  "binancecoin": { "usd": 1012.3, "usd_24h_change": 0.4166, "last_updated_at": 1791201300 },
+  "dogecoin": { "usd": 0.257842, "usd_24h_change": -2.6688, "last_updated_at": 1791201300 }
+}

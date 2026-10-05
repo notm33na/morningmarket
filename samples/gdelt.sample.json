@@ -1,0 +1,64 @@
+{
+  "articles": [
+    {
+      "url": "https://www.example.com/markets/fed-officials-signal-patience-on-rate-cuts",
+      "url_mobile": "",
+      "title": "Fed officials signal \"patience\" on further rate cuts as inflation cools slowly",
+      "seendate": "20261005T063000Z",
+      "socialimage": "",
+      "domain": "example.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://news.example.org/tech/nvidia-shares-slip-after-export-rule-report",
+      "url_mobile": "",
+      "title": "Nvidia shares slip after report of tighter chip export rules",
+      "seendate": "20261005T051500Z",
+      "socialimage": "",
+      "domain": "news.example.org",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://www.example.net/business/tesla-quarterly-deliveries-beat-estimates",
+      "url_mobile": "",
+      "title": "Tesla quarterly deliveries beat analyst estimates",
+      "seendate": "20261005T043000Z",
+      "socialimage": "",
+      "domain": "example.net",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://www.example.com/markets/wall-street-ends-week-mixed-as-tech-weighs",
+      "url_mobile": "",
+      "title": "Wall Street ends week mixed as tech stocks weigh on Nasdaq",
+      "seendate": "20261005T020000Z",
+      "socialimage": "",
+      "domain": "example.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://crypto.example.org/bitcoin-etf-inflows-continue-for-fifth-day",
+      "url_mobile": "",
+      "title": "Bitcoin ETF inflows continue for a fifth straight day",
+      "seendate": "20261004T231500Z",
+      "socialimage": "",
+      "domain": "crypto.example.org",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://www.example.net/tech/microsoft-and-amazon-expand-ai-data-center-plans",
+      "url_mobile": "",
+      "title": "Microsoft and Amazon expand AI data center plans in the US \\ Europe",
+      "seendate": "20261004T210000Z",
+      "socialimage": "",
+      "domain": "example.net",
+      "language": "English",
+      "sourcecountry": "United States"
+    }
+  ]
+}

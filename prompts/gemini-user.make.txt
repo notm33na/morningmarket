@@ -1,0 +1,14 @@
+CRYPTO (symbol | price USD | 24h change %), as of {{if(3.data.bitcoin.usd; formatDate(parseDate(ifempty(3.data.bitcoin.last_updated_at; 0); "X"); "ddd MMM D, YYYY h:mm A"; "America/New_York"); "unavailable")}}:
+BTC | {{formatNumber(3.data.bitcoin.usd; 2; "."; ",")}} | {{if(3.data.bitcoin.usd; if(3.data.bitcoin.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(3.data.bitcoin.usd_24h_change; 2; "."; ",")}}
+ETH | {{formatNumber(3.data.ethereum.usd; 2; "."; ",")}} | {{if(3.data.ethereum.usd; if(3.data.ethereum.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(3.data.ethereum.usd_24h_change; 2; "."; ",")}}
+SOL | {{formatNumber(3.data.solana.usd; 2; "."; ",")}} | {{if(3.data.solana.usd; if(3.data.solana.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(3.data.solana.usd_24h_change; 2; "."; ",")}}
+XRP | {{formatNumber(3.data.ripple.usd; 4; "."; ",")}} | {{if(3.data.ripple.usd; if(3.data.ripple.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(3.data.ripple.usd_24h_change; 2; "."; ",")}}
+BNB | {{formatNumber(3.data.binancecoin.usd; 2; "."; ",")}} | {{if(3.data.binancecoin.usd; if(3.data.binancecoin.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(3.data.binancecoin.usd_24h_change; 2; "."; ",")}}
+DOGE | {{formatNumber(3.data.dogecoin.usd; 4; "."; ",")}} | {{if(3.data.dogecoin.usd; if(3.data.dogecoin.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(3.data.dogecoin.usd_24h_change; 2; "."; ",")}}
+HEADLINES:
+1) {{replace(replace(get(map(ifempty(2.data.articles; emptyarray); "title"); 1); "\\"; "/"); "\""; "'")}}
+2) {{replace(replace(get(map(ifempty(2.data.articles; emptyarray); "title"); 2); "\\"; "/"); "\""; "'")}}
+3) {{replace(replace(get(map(ifempty(2.data.articles; emptyarray); "title"); 3); "\\"; "/"); "\""; "'")}}
+4) {{replace(replace(get(map(ifempty(2.data.articles; emptyarray); "title"); 4); "\\"; "/"); "\""; "'")}}
+5) {{replace(replace(get(map(ifempty(2.data.articles; emptyarray); "title"); 5); "\\"; "/"); "\""; "'")}}
+6) {{replace(replace(get(map(ifempty(2.data.articles; emptyarray); "title"); 6); "\\"; "/"); "\""; "'")}}
