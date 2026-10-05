@@ -32,9 +32,9 @@ flowchart LR
   R1 -->|fallback route| M11[11 SendLog skipped] --> M12[12 Slack alert]
   M1 -.error.-> M13[13 Slack alert]
   M4 -.error.-> S1[14 Sleep 10s] --> M4r[15 fallback model] -.-> RES[Resume]
-  M18[18 Create JSON, only if C6 fails] -.-> M4
+  MCJ[Create JSON, only if C6 fails] -.-> M4
 ```
-Schedule: **Weekdays (Mon–Fri), 08:00**, organization time zone **America/New_York** (DST-aware; runs on market holidays too). **Creation order fixes the IDs:** modules 1–12, then **13** = Slack alert on module 1's error route, **14** = Tools › Sleep, **15** = Gemini with the fallback model, **16** = HTTP Fed RSS, **17** = XML › Parse XML (drag 16–17 between 3 and R1), **18** = JSON › Create JSON (only if check C6 fails). Scenario settings: **Data is confidential: on**, max cycles 1. HTTP modules 2, 3, 4, 15, 16: **Evaluate all states as errors: Yes**. Written out inline (Make has no free named variables): `ARTS` = `ifempty(2.data.articles; emptyarray)`, `FED` = `ifempty(17.rss.channel.item; emptyarray)`.
+Schedule: **Weekdays (Mon–Fri), 08:00**, organization time zone **America/New_York** (DST-aware; runs on market holidays too). **Creation order fixes the IDs** (routers and directives take IDs too): Phase A creates only modules 1–12 as a plain chain, then **13** = Slack alert on module 1's error route, **14** = Tools › Sleep, **15** = Gemini with the fallback model, **16** = HTTP Fed RSS and **17** = XML › Parse XML (inserted on the link 3 → 4). Phase B adds routers R1/R2, all directives and filters, and rewires; they take IDs ≥ 18, which nothing maps. JSON › Create JSON (only if check C6 fails) takes the next free ID, mapped into module 4's body by that ID. Step-by-step: [MAIA-PROMPTS.md](MAIA-PROMPTS.md). Scenario settings: **Data is confidential: on**, max cycles 1, sequential processing off, storing incomplete executions off. HTTP modules 2, 3, 4, 15, 16: **Evaluate all states as errors: Yes**. Written out inline (Make has no free named variables): `ARTS` = `ifempty(2.data.articles; emptyarray)`, `FED` = `ifempty(17.rss.channel.item; emptyarray)`.
 
 | ID | Module | Key settings and mappings | Error handler | Credits |
 |---|---|---|---|---|
@@ -43,7 +43,7 @@ Schedule: **Weekdays (Mon–Fri), 08:00**, organization time zone **America/New_
 | 3 | HTTP › Make a request | GET `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true`; keychain "CoinGecko" (header `x-cg-demo-api-key`); parse: Yes; timeout 20 s | **Resume**, `data` empty | 1 |
 | 16 | HTTP › Make a request | GET `https://www.federalreserve.gov/feeds/speeches.xml`; header `User-Agent: MarketMorning portfolio demo ({{1.site_url}})`; parse: No; timeout 20 s | **Resume**, `data` empty | 1 |
 | 17 | XML › Parse XML | XML `{{16.data}}`; data structure generated from a saved copy of the feed | **Resume**, empty | 1 |
-| R1 | Router | Route A filter: `1.send_enabled` = `TRUE` (text) **and** (`length(ARTS)` > 0 **or** `3.data.bitcoin.usd` exists **or** `length(FED)` > 0). Route B = fallback route | – | 0 |
+| R1 | Router | Route A filter "Content OK" (one AND group): `1.send_enabled` Text = `TRUE` **and** `{{length(ARTS) + length(FED) + if(3.data.bitcoin.usd; 1; 0)}}` Numeric > `0`. Route B = fallback route "Skip" | – | 0 |
 | 4 | HTTP › Make a request | POST `https://generativelanguage.googleapis.com/v1beta/models/{{1.gemini_model}}:generateContent`; keychain "Gemini" (header `x-goog-api-key`); raw body = `prompts/gemini-body.make.txt` (generated, §3.2); parse: Yes; timeout 60 s | 14 Sleep 10 s → **15** (clone of 4 with `{{1.gemini_fallback_model}}` in the URL, timeout 40 s) → **Resume** with `data` = `{{15.data}}`; 15's handler: **Resume**, `data` empty | 1 (+2) |
 | 5 | JSON › Parse JSON | `{{ifempty(4.data.candidates[1].content.parts[1].text; 1.fallback_json)}}`; data structure = schema keys + `source` | **Resume**: `source`=fallback, `summary`=`{{1.fallback_summary}}`, `story1_id`=1, `story2_id`=2, others empty | 1 |
 | R2 | Router | →6 filter `1.batch_count` ≥ 1 (numeric); →7 ≥ 2; →8 ≥ 3; →9 no filter (last) | – | 0 |
@@ -81,7 +81,7 @@ Summary · Stories that matter (GDELT; hidden without articles) · Crypto (CoinG
 Spec in [SITE.md](SITE.md): `POST /api/mm/subscribe`, `GET|POST /api/mm/confirm`, `GET /unsubscribe`, `POST /api/mm/unsubscribe`, `GET|POST /api/mm/unsubscribe/confirm`, `GET /api/mm/chart`. HMAC-signed, expiring, single-use tokens; state changes only on POST; honeypot, MX check, WAF rate limit and rolling email budgets; writes to the Sheet via a service account. The chart proxy renders QuickChart once per CDN region and serves a placeholder for anything invalid.
 
 ## 5. Budgets
-**Credits/run:** normal 1 + 1 + 1 + 2 (Fed 16–17) + 1 + 1 + 3 + 1 + 1 = **12**; worst = 12 + Gemini retry (14, 15) 2 + Create JSON (18, check C6) 1 = **15**; skipped 7; Sheet failure 2. **Month (max 23 weekdays):** worst 15 × 23 = **345 ≤ 400**; typical 12 × 22 = 264. No GDELT retry: the Fed section keeps the email useful when GDELT fails. **Testing:** ≤ 50 credits; in the go-live month live + test ≤ 400. Gmail, not credits, limits the subscriber count. **Runtime** worst case ≈ 20 × 3 (2, 3, 16) + 60 (4) + 10 (14) + 40 (15) + ~30 (Gmail, Sheets, Slack) ≈ 3.3 min, under Make Free's 5-min limit (check C15).
+**Credits/run:** normal 1 + 1 + 1 + 2 (Fed 16–17) + 1 + 1 + 3 + 1 + 1 = **12**; worst = 12 + Gemini retry (14, 15) 2 + Create JSON (next free ID, check C6) 1 = **15**; skipped 7; Sheet failure 2. **Month (max 23 weekdays):** worst 15 × 23 = **345 ≤ 400**; typical 12 × 22 = 264. No GDELT retry: the Fed section keeps the email useful when GDELT fails. **Testing:** ≤ 150 credits (plan in MAIA-PROMPTS Step 8); go live in the month after testing so live + test ≤ 400. Gmail, not credits, limits the subscriber count. **Runtime** worst case ≈ 20 × 3 (2, 3, 16) + 60 (4) + 10 (14) + 40 (15) + ~30 (Gmail, Sheets, Slack) ≈ 3.3 min, under Make Free's 5-min limit (check C15).
 
 **Gmail** (personal: 500 recipients/message, 500 per rolling 24 h; every recipient counted): digest = N + ⌈N/100⌉ owner copies; N = 300 → 303. Transactional ≤ 100 per rolling 24 h. Peak 403, ~95 left for the owner. Hence **SUBSCRIBER_CAP 300, BATCH_SIZE 100**.
 
@@ -95,7 +95,7 @@ Spec in [SITE.md](SITE.md): `POST /api/mm/subscribe`, `GET|POST /api/mm/confirm`
 | CoinGecko (3) | error / 429 | "Crypto prices unavailable today."; table, chart and credit hidden; `crypto_note` empty. |
 | Fed RSS (16) / Parse XML (17) | error, non-XML | Empty `FED` → Fed section hidden; everything else unchanged. |
 | All of 2, 3, 16 empty, or SEND_ENABLED off | – | Route B: SendLog `skipped` + Slack. |
-| Gemini (4) | 429/503/timeout/4xx | Sleep 10 s (14), retry once with `GEMINI_FALLBACK_MODEL` (15); then empty → module 5 uses `fallback_json`, status `ok_no_ai`, footer says the summary was not written by AI. |
+| Gemini (4) | 429/503/timeout/4xx | Sleep 10 s (14), retry once with `GEMINI_FALLBACK_MODEL` (15); then empty → module 5 uses `fallback_json`, status `ok_no_ai`, footer says the summary was not written by AI. If Make can't attach a handler to 15 (C14b), 15 runs with "Evaluate all states as errors: No" so API errors still fall back; only a timeout of 15 would end the run. |
 | Gemini output (5) | bad/truncated JSON | Resume with fallback fields. |
 | Gmail (6–8) | any error | Resume; other routes still run; `partial`/`failed`; Slack shows it. |
 | SendLog/Slack | error | Resume/Ignore. |
