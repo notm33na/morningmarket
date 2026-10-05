@@ -77,7 +77,7 @@ Module 5 – JSON › Parse JSON. Label: "5 Parse digest". JSON string: leave EM
 ```
 In "MarketMorning", after module 5, add exactly three Gmail modules, chained 5 → 6 → 7 → 8 (I will rewire them later). Do not change modules 1–5. No routers, filters or error handlers. Do not run or activate. Stop and ask for the Gmail connection. Rename each to its label.
 
-For each of the three: Gmail › Send an Email. Connection: my Gmail connection (ask me). To: map {{1.owner_email}}. Body type: Raw HTML. Content: leave EMPTY. Subject: leave EMPTY. BCC: leave EMPTY.
+For each of the three: Gmail › Send an Email. Connection: my Gmail connection (ask me). To: map {{1.owner_email}}. Body type: Raw HTML. Content: placeholder (a temporary word; Make may not save an empty required field – I will replace it). Subject: placeholder. BCC: leave EMPTY.
 Labels, in creation order: "6 Send batch 1", "7 Send batch 2", "8 Send batch 3".
 ```
 **For you to do manually**
@@ -87,7 +87,7 @@ Labels, in creation order: "6 Send batch 1", "7 Send batch 2", "8 Send batch 3".
   - **Additional email headers:** name `List-Unsubscribe`, value `<{{1.site_url}}/unsubscribe>`.
 - **In Step 5c:** paste the content (the email HTML).
 
-**Check after Maia:** IDs 1–5 unchanged; new IDs 6, 7, 8; To is the `1.owner_email` pill; body type Raw HTML.
+**Check after Maia:** IDs 1–5 unchanged; new IDs 6, 7, 8; To is the `1.owner_email` pill; body type Raw HTML. Any field Maia couldn't leave empty holds the word `placeholder`; replace it as listed (subject now, content in Step 5c).
 
 *No runs. Running total: 3 / 150.*
 
@@ -96,7 +96,7 @@ Labels, in creation order: "6 Send batch 1", "7 Send batch 2", "8 Send batch 3".
 In "MarketMorning", after module 8, add exactly four modules, chained 8 → 9 → 10 → 11 → 12 (I will rewire them later). Do not change modules 1–8. No routers, filters or error handlers. Do not run or activate. Stop and ask for connections. Rename each to its label.
 
 Module 9 – Google Sheets › Add a Row. Label: "9 Log run". Connection: my Google Sheets connection (ask me). Search method: Enter manually. Spreadsheet ID: [TYPE SHEET ID HERE YOURSELF]. Sheet name: SendLog. Table contains headers: Yes. Column "subscribers": map {{1.active_count}}. Leave date, batches, status and error EMPTY.
-Module 10 – Slack › Create a Message. Label: "10 Report run". Connection: my Slack connection (ask me). Channel ID: [SLACK CHANNEL ID]. Text: leave EMPTY.
+Module 10 – Slack › Create a Message. Label: "10 Report run". Connection: my Slack connection (ask me). Channel ID: [SLACK CHANNEL ID]. Text: placeholder (temporary; I will replace it).
 Module 11 – Google Sheets › Add a Row. Label: "11 Log skip". Connection: my Google Sheets connection (ask me). Search method: Enter manually. Spreadsheet ID: [TYPE SHEET ID HERE YOURSELF]. Sheet name: SendLog. Table contains headers: Yes. subscribers: map {{1.active_count}}. batches: 0. status: skipped. error: send disabled or no content. Leave date EMPTY.
 Module 12 – Slack › Create a Message. Label: "12 Alert skip". Connection: my Slack connection (ask me). Channel ID: [SLACK CHANNEL ID]. Text: MarketMorning SKIPPED: SEND_ENABLED off, or the Fed feed, BLS and CoinGecko all empty.
 ```
