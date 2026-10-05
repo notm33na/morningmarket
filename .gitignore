@@ -8,4 +8,4 @@ node_modules/
 *.log
 *.sa.json
 service-account*.json
-marketmorning-*.json
+marketmorning-[0-9a-f][0-9a-f][0-9a-f]*.json

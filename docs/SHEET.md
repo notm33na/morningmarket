@@ -1,6 +1,6 @@
 # Google Sheet spec: "MarketMorning"
 
-File settings: **Locale United States, Time zone (GMT-05:00) New York**. Share the file as Editor with the Vercel service account email. Row 1 of every tab is the header row exactly as written. The Sheet holds no market data (see [DATA-SOURCES.md](DATA-SOURCES.md)).
+Built by `tools/sheet-setup.gs` (keep both in sync; re-running it never overwrites Config values). File settings: **Locale United States, Time zone (GMT-05:00) New York**. Share the file as Editor with the Vercel service account email. Row 1 of every tab is the header row exactly as written. The Sheet holds no market data (see [DATA-SOURCES.md](DATA-SOURCES.md)).
 
 ## Config (A key, B value)
 | Key | Value |
@@ -47,15 +47,15 @@ Row 1 = keys (A–L), row 2 = formulas.
 
 Three batch columns cover the 300 cap at 100 per batch; a higher cap breaks the Gmail budget (ARCHITECTURE §5).
 
-## Dashboard (owner only; no public stats)
+## Dashboard (owner only; no public stats; labels in column A)
 | Cell | Metric | Formula |
 |---|---|---|
 | B2–B5 | Active / Pending / Waitlist / Unsubscribed | `=COUNTIF(Subscribers!B:B,"active")` (etc.) |
 | B6 | Cap used | `=B2/cfg("SUBSCRIBER_CAP")` (format %) |
-| B7 | Transactional emails today (UTC date) | `=COUNTIF(TxLog!A:A,TEXT(TODAY(),"yyyy-mm-dd")&"*")` |
-| B8 | Last run status | `=INDEX(SendLog!D:D,COUNTA(SendLog!D:D))` |
+| B7 | Transactional emails today (New York date) | `=COUNTIF(TxLog!A:A,TEXT(TODAY(),"yyyy-mm-dd")&"*")` |
+| B8 | Last run status | `=IFERROR(INDEX(SendLog!D:D,COUNTA(SendLog!D:D)),"")` |
 | B9 | Rows due for purge | `=COUNTIF(Subscribers!B:B,"unsubscribed")+SUMPRODUCT((Subscribers!B2:B="pending")*(IFERROR(DATEVALUE(LEFT(Subscribers!C2:C,10)),TODAY())<TODAY()-7))` |
-| D2 | Signups per day (table) | `=QUERY({ARRAYFORMULA(IFERROR(DATEVALUE(LEFT(Subscribers!C2:C,10)))),Subscribers!A2:A},"select Col1, count(Col2) where Col1 is not null group by Col1 label Col1 'day', count(Col2) 'signups'",0)` |
-| G2 | Failures (table) | `=IFERROR(FILTER(SendLog!A2:E,SendLog!D2:D<>"ok"),"none")` |
+| D2 | Signups per day (table; D3:D formatted yyyy-mm-dd) | `=IFERROR(QUERY({ARRAYFORMULA(IFERROR(TO_DATE(DATEVALUE(LEFT(Subscribers!C2:C,10))))),Subscribers!A2:A},"select Col1, count(Col2) where Col1 is not null group by Col1 label Col1 'day', count(Col2) 'signups'",0),"no signups yet")` |
+| J2 | Runs not ok (table; includes ok_no_ai, partial, failed, skipped) | `=IFERROR(FILTER(SendLog!A2:E,SendLog!D2:D<>"ok",SendLog!D2:D<>""),"none")` |
 
 Charts: (1) column chart of D:E "Signups per day"; (2) line chart of SendLog A:B "Subscribers sent per run"; (3) pie of A2:B5 "Status mix".

@@ -3,7 +3,7 @@
 How to build the MarketMorning scenario with Maia (Make's AI scenario builder), following [BUILD-ORDER](BUILD-ORDER.md) §4 and [ARCHITECTURE](ARCHITECTURE.md) §2. There are **6 Maia prompts**; everything else is done by hand.
 
 **Before you start**
-1. The Google Sheet is built exactly per [SHEET.md](SHEET.md) (Feed row 2 shows values in A–L), and you have its ID.
+1. The Google Sheet is built with `tools/sheet-setup.gs` per [SHEET.md](SHEET.md) (Feed row 2 shows values in A–L), and you have its ID.
 2. Make connections exist: Google Sheets and Gmail (Sign in with Google), and Slack (the same workspace as LeadFlow).
 3. Your Gemini and CoinGecko Demo API keys are ready for two API-key keychains: "Gemini" (header `x-goog-api-key`) and "CoinGecko" (header `x-cg-demo-api-key`). Create them when Maia stops and asks.
 4. The Subscribers tab has 3 rows you typed yourself: `{{TEST_EMAIL+mm1}}`, `+mm2` and `+mm3` (your real plus-addresses), each with status `active`.

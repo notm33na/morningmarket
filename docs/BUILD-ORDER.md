@@ -18,8 +18,8 @@ Each check is pass/fail. The fallback is already chosen: if a check fails, apply
    - **C10** App password can be created and nodemailer sends a test mail via smtp.gmail.com:465. *Fallback:* only then create an OAuth client (+ consent screen published to Production) and use nodemailer OAuth2 with a refresh token (env `GMAIL_OAUTH_CLIENT_ID/SECRET/REFRESH_TOKEN`).
 
 ## 2. Google Sheet (Owner)
-Build every tab in [SHEET.md](SHEET.md); share with the service account as Editor.
-- **C2** Feed row 2 shows all 12 values, and `fallback_json` (cell C2) is valid JSON (paste it into any JSON validator). *Fallback:* fix the formula until it is.
+Run `tools/sheet-setup.gs` (Extensions › Apps Script › paste › run `setupMarketMorning`), which builds every tab in [SHEET.md](SHEET.md); replace the three `[PLACEHOLDERS]` in Config; share with the service account as Editor.
+- **C2** Feed row 2 shows all 12 values with no `[...]` placeholders left in B2, J2 or L2 (the setup log lists any), and `fallback_json` (cell C2) is valid JSON (paste it into any JSON validator). *Fallback:* fix the formula until it is.
 
 ## 3. Site repo: functions and section (CC, then Owner deploys)
 Build `/api/mm/*`, `/unsubscribe`, the "Live demo: MarketMorning" section, `/mm/chart-unavailable.png` and `/mm/coingecko-logo.png` (downloaded from the CoinGecko Brand Kit) per [SITE.md](SITE.md); set Vercel env vars; run PRD tests 9–11 on a preview deployment.
@@ -53,7 +53,7 @@ Use 3 `{{TEST_EMAIL+mmN}}` active rows in Subscribers. Single-module checks (C6,
 - **C24** Module 18 outputs fields `cpi`, `unemployment`, `payrolls`, `ppi` (named groups), with values such as "+0.4%  in Aug 2026"; copy one pill's raw text to confirm the mapping syntax. With BLS empty, it continues with an empty bundle.
   - *Fallback:* if Make names the groups differently (or needs backticks), replace `18.cpi`…`18.ppi` in the template, user prompt, R1/ERR and module 10 with the exact pill text, and mirror it in `matchBls()` of the tool.
   - If BLS changed its markup, update `prompts/bls-pattern.make.txt` (test it locally first), then paste the new pattern.
-- **C25** Module 2 returns 200 RSS from Make on 3 test days, and `2.data` shows as text, not binary. *Fallback:* if binary, map `{{toString(2.data)}}` in module 18. If blocked (403), type a contact email into module 2's User-Agent **in Make only** (never in files; the blueprint scrub removes emails). If still blocked, delete modules 2 and 18 (−2 credits), remove the `18.*` gates from R1, ERR and module 10, remove the BLS blocks from the template and prompt, mirror that in the tool, and regenerate the Make body.
+- **C25** Module 2 returns 200 RSS from Make on 3 test days, and `2.data` shows as text, not binary. *Fallback:* if binary, map `{{toString(2.data)}}` in module 18. If blocked (403), type a contact email (email only, no name) into module 2's User-Agent **in Make only** (never in files; the blueprint scrub removes emails). If still blocked, delete modules 2 and 18 (−2 credits), remove the `18.*` gates from R1, ERR and module 10, remove the BLS blocks from the template and prompt, mirror that in the tool, and regenerate the Make body.
 - **C13** R1 "Content OK" passes on a normal run and sends all-empty runs to the fallback route. R1 is one AND group: `1.send_enabled` Text = `TRUE`, and the source count Numeric > 0. *Fallback:* use Boolean "Equal to" `true` for the first condition. If the count expression errors, split it into three OR groups, each `send_enabled = TRUE` AND one source condition.
 - **C13b** Modules 9/10 on R2's last route can map `6.id`, `7.id`, `8.id`. *Fallback:* drop R2 and chain 6 → 7 → 8 → 9 → 10 with no filters; an empty batch then sends an owner-only copy (same credits, ≤ 2 extra recipients/day).
 - **C14b** These must all work:
@@ -84,4 +84,4 @@ Reminders: reauthorize Make Gmail every 5 months; monthly purge (Dashboard B9); 
 - **C14** Runs on Fri 2026-10-30 and Mon 2026-11-02 both start at 08:00 ET. *Fallback:* set the schedule time manually after each DST change.
 
 ## 8. Publish (CC + Owner)
-Export the blueprint to `blueprints/raw/`, scrub it into `blueprints/`, run the secret scan, push the public repo, add README screenshots, record the Loom.
+Export the blueprint to `blueprints/raw/`, run `node tools/scrub-blueprint.mjs` (must exit 0), review the scrubbed file (on the first real export, also check no numeric `key`/`keychain` fields remain), run the secret scan `git grep -nIE "AIza|CG-[0-9A-Za-z]{15}|xox[abprs]-|ya29.|@gmail.com|gemini-[0-9]"` (must print nothing), push the public repo, add README screenshots, record the Loom.
