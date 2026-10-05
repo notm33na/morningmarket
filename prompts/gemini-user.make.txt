@@ -1,16 +1,16 @@
 FED SPEECHES (date | speaker, title):
-{{if(get(map(ifempty(17.rss.channel.item; emptyarray); "link"); 1); trim(substring(get(map(ifempty(17.rss.channel.item; emptyarray); "pubDate"); 1); 0; 16)); "")}}{{if(get(map(ifempty(17.rss.channel.item; emptyarray); "link"); 1); " | "; "")}}{{replace(replace(get(map(ifempty(17.rss.channel.item; emptyarray); "title"); 1); "\\"; "/"); "\""; "'")}}
-{{if(get(map(ifempty(17.rss.channel.item; emptyarray); "link"); 2); trim(substring(get(map(ifempty(17.rss.channel.item; emptyarray); "pubDate"); 2); 0; 16)); "")}}{{if(get(map(ifempty(17.rss.channel.item; emptyarray); "link"); 2); " | "; "")}}{{replace(replace(get(map(ifempty(17.rss.channel.item; emptyarray); "title"); 2); "\\"; "/"); "\""; "'")}}
-{{if(get(map(ifempty(17.rss.channel.item; emptyarray); "link"); 3); trim(substring(get(map(ifempty(17.rss.channel.item; emptyarray); "pubDate"); 3); 0; 16)); "")}}{{if(get(map(ifempty(17.rss.channel.item; emptyarray); "link"); 3); " | "; "")}}{{replace(replace(get(map(ifempty(17.rss.channel.item; emptyarray); "title"); 3); "\\"; "/"); "\""; "'")}}
+{{if(get(map(ifempty(18.rss.channel.item; emptyarray); "link"); 1); trim(substring(get(map(ifempty(18.rss.channel.item; emptyarray); "pubDate"); 1); 0; 16)); "")}}{{if(get(map(ifempty(18.rss.channel.item; emptyarray); "link"); 1); " | "; "")}}{{replace(replace(get(map(ifempty(18.rss.channel.item; emptyarray); "title"); 1); "\\"; "/"); "\""; "'")}}
+{{if(get(map(ifempty(18.rss.channel.item; emptyarray); "link"); 2); trim(substring(get(map(ifempty(18.rss.channel.item; emptyarray); "pubDate"); 2); 0; 16)); "")}}{{if(get(map(ifempty(18.rss.channel.item; emptyarray); "link"); 2); " | "; "")}}{{replace(replace(get(map(ifempty(18.rss.channel.item; emptyarray); "title"); 2); "\\"; "/"); "\""; "'")}}
+{{if(get(map(ifempty(18.rss.channel.item; emptyarray); "link"); 3); trim(substring(get(map(ifempty(18.rss.channel.item; emptyarray); "pubDate"); 3); 0; 16)); "")}}{{if(get(map(ifempty(18.rss.channel.item; emptyarray); "link"); 3); " | "; "")}}{{replace(replace(get(map(ifempty(18.rss.channel.item; emptyarray); "title"); 3); "\\"; "/"); "\""; "'")}}
 LATEST US DATA (official BLS figures; value and month):
-{{if(18.cpi; "CPI, 1-month change | "; "")}}{{replace(replace(replace(18.cpi; "  "; " "); "\\"; "/"); "\""; "'")}}
-{{if(18.unemployment; "Unemployment rate | "; "")}}{{replace(replace(replace(18.unemployment; "  "; " "); "\\"; "/"); "\""; "'")}}
-{{if(18.payrolls; "Payroll employment, 1-month change | "; "")}}{{replace(replace(replace(18.payrolls; "  "; " "); "\\"; "/"); "\""; "'")}}
-{{if(18.ppi; "PPI final demand, 1-month change | "; "")}}{{replace(replace(replace(18.ppi; "  "; " "); "\\"; "/"); "\""; "'")}}
-CRYPTO (symbol | price USD | 24h change %), as of {{if(3.data.bitcoin.usd; formatDate(parseDate(ifempty(3.data.bitcoin.last_updated_at; 0); "X"); "ddd MMM D, YYYY h:mm A"; "America/New_York"); "unavailable")}}:
-BTC | {{formatNumber(3.data.bitcoin.usd; 2; "."; ",")}} | {{if(3.data.bitcoin.usd; if(3.data.bitcoin.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(3.data.bitcoin.usd_24h_change; 2; "."; ",")}}
-ETH | {{formatNumber(3.data.ethereum.usd; 2; "."; ",")}} | {{if(3.data.ethereum.usd; if(3.data.ethereum.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(3.data.ethereum.usd_24h_change; 2; "."; ",")}}
-SOL | {{formatNumber(3.data.solana.usd; 2; "."; ",")}} | {{if(3.data.solana.usd; if(3.data.solana.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(3.data.solana.usd_24h_change; 2; "."; ",")}}
-XRP | {{formatNumber(3.data.ripple.usd; 4; "."; ",")}} | {{if(3.data.ripple.usd; if(3.data.ripple.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(3.data.ripple.usd_24h_change; 2; "."; ",")}}
-BNB | {{formatNumber(3.data.binancecoin.usd; 2; "."; ",")}} | {{if(3.data.binancecoin.usd; if(3.data.binancecoin.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(3.data.binancecoin.usd_24h_change; 2; "."; ",")}}
-DOGE | {{formatNumber(3.data.dogecoin.usd; 4; "."; ",")}} | {{if(3.data.dogecoin.usd; if(3.data.dogecoin.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(3.data.dogecoin.usd_24h_change; 2; "."; ",")}}
+{{if(19.cpi; "CPI, 1-month change | "; "")}}{{replace(replace(replace(19.cpi; "  "; " "); "\\"; "/"); "\""; "'")}}
+{{if(19.unemployment; "Unemployment rate | "; "")}}{{replace(replace(replace(19.unemployment; "  "; " "); "\\"; "/"); "\""; "'")}}
+{{if(19.payrolls; "Payroll employment, 1-month change | "; "")}}{{replace(replace(replace(19.payrolls; "  "; " "); "\\"; "/"); "\""; "'")}}
+{{if(19.ppi; "PPI final demand, 1-month change | "; "")}}{{replace(replace(replace(19.ppi; "  "; " "); "\\"; "/"); "\""; "'")}}
+CRYPTO (symbol | price USD | 24h change %), as of {{if(4.data.bitcoin.usd; formatDate(parseDate(ifempty(4.data.bitcoin.last_updated_at; 0); "X"); "ddd MMM D, YYYY h:mm A"; "America/New_York"); "unavailable")}}:
+BTC | {{formatNumber(4.data.bitcoin.usd; 2; "."; ",")}} | {{if(4.data.bitcoin.usd; if(4.data.bitcoin.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(4.data.bitcoin.usd_24h_change; 2; "."; ",")}}
+ETH | {{formatNumber(4.data.ethereum.usd; 2; "."; ",")}} | {{if(4.data.ethereum.usd; if(4.data.ethereum.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(4.data.ethereum.usd_24h_change; 2; "."; ",")}}
+SOL | {{formatNumber(4.data.solana.usd; 2; "."; ",")}} | {{if(4.data.solana.usd; if(4.data.solana.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(4.data.solana.usd_24h_change; 2; "."; ",")}}
+XRP | {{formatNumber(4.data.ripple.usd; 4; "."; ",")}} | {{if(4.data.ripple.usd; if(4.data.ripple.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(4.data.ripple.usd_24h_change; 2; "."; ",")}}
+BNB | {{formatNumber(4.data.binancecoin.usd; 2; "."; ",")}} | {{if(4.data.binancecoin.usd; if(4.data.binancecoin.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(4.data.binancecoin.usd_24h_change; 2; "."; ",")}}
+DOGE | {{formatNumber(4.data.dogecoin.usd; 4; "."; ",")}} | {{if(4.data.dogecoin.usd; if(4.data.dogecoin.usd_24h_change >= 0; "+"; ""); "")}}{{formatNumber(4.data.dogecoin.usd_24h_change; 2; "."; ",")}}

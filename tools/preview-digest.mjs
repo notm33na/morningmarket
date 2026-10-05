@@ -310,8 +310,10 @@ async function main() {
   const bls = matchBls(blsText);
   if (!SAMPLE && isEmpty(bls.cpi)) console.warn('  BLS latest numbers: pattern did not match -> section hidden');
   // Make keys Get Range Values output by column index (0–11); header names are labels only (check C21)
-  const feedRow = Object.fromEntries(Object.values(feed).map((v, i) => [String(i), v]));
-  const ctx = { now, bundles: { 1: feedRow, 2: { data: blsText }, 3: { data: coingecko }, 17: fed, 18: bls } };
+  const FEED_COLUMNS = ['send_enabled', 'gemini_model', 'fallback_json', 'active_count', 'batch_count', 'batch_1', 'batch_2', 'batch_3', 'site_url', 'owner_email', 'fallback_summary', 'gemini_fallback_model']; // Feed A–L
+  const feedRow = Object.fromEntries(FEED_COLUMNS.map((k, i) => [String(i), feed[k]]));
+  // Make IDs in the reference build are label number + 1 (ID 1 was used by a deleted placeholder)
+  const ctx = { now, bundles: { 2: feedRow, 3: { data: blsText }, 4: { data: coingecko }, 18: fed, 19: bls } };
 
   // Router R1
   const fedItems = fed?.rss?.channel?.item ?? [];
@@ -325,13 +327,13 @@ async function main() {
   let bodyJson;
   try { bodyJson = JSON.parse(bodyText); } catch (e) { throw new Error(`Rendered Gemini body is not valid JSON (check C6): ${e.message}`); }
   if (!SAMPLE && !FROM) geminiResponse = await callGemini(env, bodyText);
-  ctx.bundles[4] = { data: geminiResponse };
+  ctx.bundles[5] = { data: geminiResponse };
 
   // Module 5: Parse JSON with fallback
-  const text = evaluate(parse(tokenize('ifempty(4.data.candidates[1].content.parts[1].text; 1.`2`)')), ctx);
+  const text = evaluate(parse(tokenize('ifempty(5.data.candidates[1].content.parts[1].text; 2.`2`)')), ctx);
   let digest;
   try { digest = JSON.parse(text); } catch { digest = { source: 'fallback', summary: feed.fallback_summary, crypto_note: '' }; }
-  ctx.bundles[5] = digest;
+  ctx.bundles[6] = digest;
 
   const html = render(read('templates/digest-email.html'), ctx);
   const date = formatDate(now, 'YYYY-MM-DD', 'America/New_York');
