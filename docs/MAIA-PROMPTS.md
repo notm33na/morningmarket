@@ -9,10 +9,10 @@ How to build the MarketMorning scenario with Maia (Make's AI scenario builder), 
 4. The Subscribers tab has 3 rows you typed yourself: `{{TEST_EMAIL+mm1}}`, `+mm2` and `+mm3` (your real plus-addresses), each with status `active`.
 5. An empty scenario "MarketMorning" exists and stays **OFF** until BUILD-ORDER §7.
 
-> **Your build: Make ID = label number + 1.** ID 1 was used by a deleted placeholder, so "1 Read Feed" is ID 2, "2 BLS latest numbers" is ID 3 … "18 Match BLS numbers" will be ID 19, and routers/directives start at 20. Every paste value and mapping in this guide (`{{2.…}}`, `{{5.data…}}`, `{{19.cpi}}` …) already uses these real IDs. Where a check says "IDs 1, 2, 3" or "module 4", read it as the **label** number and expect the Make ID to be one higher.
+> **Your build: Make ID = label number + 1.** ID 1 was used by a deleted placeholder, so "1 Read Feed" is ID 2, "2 BLS latest numbers" is ID 3 … "17 Parse Fed RSS" will be ID 18, and routers/directives start at 19. Every paste value and mapping in this guide (`{{2.…}}`, `{{5.data…}}`, `{{3.data.Results…}}` …) already uses these real IDs. Where a check says "IDs 1, 2, 3" or "module 4", read it as the **label** number and expect the Make ID to be one higher.
 
 ## Why the build is split this way
-- Every mapping uses fixed module IDs (`{{1.x}}`, `{{5.x}}`, `{{15.x}}`, `{{17.x}}`, `{{19.cpi}}` …), and Make assigns IDs in **creation order**.
+- Every mapping uses fixed module IDs (`{{2.x}}`, `{{6.x}}`, `{{16.x}}`, `{{18.x}}` … in your build), and Make assigns IDs in **creation order**.
 - Routers and error-handler directives (Resume, Ignore) are modules too, so they also take IDs. Filters don't.
 - **Phase A** (Steps 1–5b) therefore creates only modules 1–18, in order: a plain chain plus the error-route modules.
 - **Phase B** (Step 5c) adds the routers, directives and filters. They take IDs 19 and up, which no mapping refers to.
@@ -35,12 +35,13 @@ In the scenario "MarketMorning", create exactly three modules, in this order, li
 
 Module 1 – Google Sheets › Get Range Values. Label: "1 Read Feed". Connection: my Google Sheets connection (ask me). Search method: Enter manually. Spreadsheet ID: [TYPE SHEET ID HERE YOURSELF]. Sheet name: Feed. Range: A1:L2. Table contains headers: Yes.
 
-Module 2 – HTTP › Make a request. Label: "2 BLS latest numbers". URL: https://www.bls.gov/feed/bls_latest.rss . Method: GET. Authentication: none. Headers: one header, name User-Agent, value MarketMorning portfolio demo (then map {{2.`8`}} in brackets). Parse response: No. Timeout: 20 seconds. Evaluate all states as errors: Yes.
+Module 2 – HTTP › Make a request. Label: "2 BLS latest numbers". URL: https://api.bls.gov/publicAPI/v2/timeseries/data/ . Method: POST. Authentication: none. Header: User-Agent = MarketMorning portfolio demo. Body content type: application/json, input method JSON string, body: {} (I will paste the real body). Parse response: Yes. Timeout: 20 seconds. Return error if HTTP request fails: Yes.
 
 Module 3 – HTTP › Make a request. Label: "3 CoinGecko prices". URL: https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true . Method: GET. Authentication: API key, keychain [COINGECKO KEYCHAIN] (stop and ask me to create it: key in header x-cg-demo-api-key). Parse response: Yes. Timeout: 20 seconds. Evaluate all states as errors: Yes.
 ```
 **For you to do manually**
 - Type the Sheet ID yourself if Maia left the placeholder.
+- **Module 2 body:** paste the contents of `prompts/bls-request.make.json` and replace `[BLS API KEY - type it in Make only]` with your BLS key (from your registration email). Never put the key in the repo; the blueprint scrubber redacts it.
 - Create the "CoinGecko" keychain when Maia asks: API key placement **Header**, parameter name `x-cg-demo-api-key`.
 
 **Check after Maia**
@@ -51,7 +52,7 @@ Module 3 – HTTP › Make a request. Label: "3 CoinGecko prices". URL: https://
 
 **Checks now** (Run this module only; if Make asks for mapped inputs, paste the value of Feed!I2 for `` 2.`8` ``)
 - **C21:** module 1 output shows the 12 keys `send_enabled` … `gemini_fallback_model`. ≈1 credit.
-- **C25, day 1:** module 2 returns 200 with RSS text containing "Consumer Price Index". ≈1 credit.
+- **C25, day 1:** after you paste the body (below), module 2 returns `"status": "REQUEST_SUCCEEDED"` with 4 series. ≈1 credit.
 - **Keychain sanity:** module 3 returns prices. ≈1 credit.
 
 *Running total: 3 / 150.*
@@ -109,9 +110,9 @@ Module 12 – Slack › Create a Message. Label: "12 Alert skip". Connection: my
   - **Module 9, status:**
     `` {{if(2.`4` = 0; "ok"; if((if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)) = 0; "failed"; if((if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)) < 2.`4`; "partial"; if(6.source = "fallback"; "ok_no_ai"; "ok"))))}} ``
   - **Module 9, error:**
-    `` {{if(6.source = "fallback"; "AI fallback. "; "")}}{{if(19.cpi; ""; "No BLS data. ")}}{{if(4.data.bitcoin.usd; ""; "No crypto data. ")}}{{if(length(ifempty(18.rss.channel.item; emptyarray)) = 0; "No Fed feed. "; "")}}{{if((if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)) < 2.`4`; "Batch failures. "; "")}} ``
+    `` {{if(6.source = "fallback"; "AI fallback. "; "")}}{{if(3.data.Results.series[1].data[1].value; ""; "No BLS data. ")}}{{if(4.data.bitcoin.usd; ""; "No crypto data. ")}}{{if(length(ifempty(18.rss.channel.item; emptyarray)) = 0; "No Fed feed. "; "")}}{{if((if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)) < 2.`4`; "Batch failures. "; "")}} ``
   - **Module 10, text:**
-    `` MarketMorning {{if(2.`4` = 0; "ok"; if((if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)) = 0; "failed"; if((if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)) < 2.`4`; "partial"; if(6.source = "fallback"; "ok_no_ai"; "ok"))))}}: attempted {{2.`3`}} subscribers, {{if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)}}/{{2.`4`}} batches delivered. {{if(6.source = "fallback"; "AI fallback. "; "")}}{{if(19.cpi; ""; "No BLS data. ")}}{{if(4.data.bitcoin.usd; ""; "No crypto data. ")}}{{if(length(ifempty(18.rss.channel.item; emptyarray)) = 0; "No Fed feed. "; "")}} ``
+    `` MarketMorning {{if(2.`4` = 0; "ok"; if((if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)) = 0; "failed"; if((if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)) < 2.`4`; "partial"; if(6.source = "fallback"; "ok_no_ai"; "ok"))))}}: attempted {{2.`3`}} subscribers, {{if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)}}/{{2.`4`}} batches delivered. {{if(6.source = "fallback"; "AI fallback. "; "")}}{{if(3.data.Results.series[1].data[1].value; ""; "No BLS data. ")}}{{if(4.data.bitcoin.usd; ""; "No crypto data. ")}}{{if(length(ifempty(18.rss.channel.item; emptyarray)) = 0; "No Fed feed. "; "")}} ``
 - **If Gmail's output field isn't `id`** (for example `Message ID`), replace every `7.id`, `8.id` and `9.id` in modules 9 and 10 with that field.
 
 **Check after Maia:** IDs 1–8 unchanged; new IDs 9–12; sheet names; channel IDs typed by you.
@@ -134,7 +135,7 @@ Maia can't add error-handler routes, so do these by hand.
 
 **Check:** IDs 1–12 unchanged, new IDs 13, 14, 15 (C19, part 1). *0 credits.*
 
-## Step 5b. BUILD BY HAND: modules 16–18 between 3 and 4
+## Step 5b. BUILD BY HAND: modules 16–17 between 3 and 4
 1. Right-click the **link 3 → 4**, choose **Add a module**, then pick **HTTP › Make a request**.
    - Label it "16 Fed speeches".
    - Method GET; URL `https://www.federalreserve.gov/feeds/speeches.xml`.
@@ -144,31 +145,25 @@ Maia can't add error-handler routes, so do these by hand.
    - Label it "17 Parse Fed RSS". XML: `{{17.data}}`.
    - Data structure: **Add**, then **Generator**, content type **XML**; paste the contents of `samples/fed-speeches.sample.xml`.
 
-3. Right-click the **link 17 → 4**, choose **Add a module**, then pick **Text parser › Match pattern**.
-   - Label it "18 Match BLS numbers".
-   - Pattern: paste the whole of `prompts/bls-pattern.make.txt`. Text: `{{3.data}}`.
-   - Global match **No**; case sensitive **Yes**; multiline **No**; singleline **No**.
-   - Continue the execution of the route even if the module finds no matches: **Yes**.
 
-**Check:** IDs 16, 17 and 18; the chain reads 1 → 2 → 3 → 16 → 17 → 18 → 4 → 5 → 6 … 12.
+**Check:** labels 16 and 17 (Make IDs 17 and 18); the chain reads 1 → 2 → 3 → 16 → 17 → 4 → 5 → 6 … 12.
 
 **Checks now** (Run this module only; for module 17, paste module 16's output as `17.data` if asked)
 - **C22:** module 17 outputs `rss.channel.item[]` with plain `title`, `link` and `pubDate`, newest first. ≈1 credit.
-- **C24:** module 18 outputs four values in fields `cpi`, `unemployment`, `payrolls`, `ppi` (for this run, paste module 2's output or `samples/bls-latest.sample.rss` as `3.data` if asked). If they have other names, apply the C24 fallback. ≈1 credit.
 
 If C22 shows a different path, apply its fallback, then run `node tools/preview-digest.mjs --make-body > prompts/gemini-body.make.txt` before Step 5c.
 
-*Running total: 5 / 150.*
+*Running total: 4 / 150.*
 
 ## Step 5c. BUILD BY HAND: routers, rewiring, directives, pastes
 **R1.** Routers take IDs 19 and up.
-1. Right-click the **link 18 → 4** and choose **Add a router**. Module 4 is now on R1's first route.
+1. Right-click the **link 17 → 4** and choose **Add a router**. Module 4 is now on R1's first route.
 2. Right-click the **link 10 → 11** and choose **Unlink**. Drag from R1's handle to module 11 to make route 2.
    - If dragging doesn't link them, click R1's **+**, add any module, delete it, then drag that route's end onto 11.
 3. On route 2's wrench, choose **Set up a filter**: name "Skip", and tick **Fallback route**.
 4. On route 1 (R1 → 4), set the filter **"Content OK"**. It is one AND group with two conditions:
    - `` {{2.`0`}} `` **Text: Equal to** `TRUE`
-   - AND `{{length(ifempty(18.rss.channel.item; emptyarray)) + if(4.data.bitcoin.usd; 1; 0) + if(19.cpi; 1; 0)}}` **Numeric: Greater than** `0`
+   - AND `{{length(ifempty(18.rss.channel.item; emptyarray)) + if(4.data.bitcoin.usd; 1; 0) + if(3.data.Results.series[1].data[1].value; 1; 0)}}` **Numeric: Greater than** `0`
 
    (C13.)
 
@@ -186,14 +181,14 @@ If C22 shows a different path, apply its fallback, then run `node tools/preview-
 
 | Where | How |
 |---|---|
-| Error handler of 2, 3, 16, 17, 18, 6, 7, 8, 9, 11 | Right-click the module, **Add error handler**, **Resume**, leave the output empty |
+| Error handler of 2, 3, 16, 17, 6, 7, 8, 9, 11 | Right-click the module, **Add error handler**, **Resume**, leave the output empty |
 | Error handler of 5 | Right-click, **Add error handler**, **Resume**. Set `source` = `fallback`, `summary` = `` {{2.`10`}} ``, `crypto_note` empty |
 | Error handler of 10, 12, 13 | Right-click, **Add error handler**, **Ignore** |
 | After 13 (end of module 1's error route) | Click 13's right handle, **Flow control**, **Ignore** |
 | After 15 (end of module 4's error route) | Click 15's right handle, **Flow control**, **Resume**. This replaces module 4's output: set `data` = `{{16.data}}` |
 | Error handler of 15 | Right-click 15, **Add error handler**, **Resume** with `data` empty. If Make doesn't offer this, use the C14b fallback |
 
-**Pastes** (do these now that modules 17 and 18 exist)
+**Pastes** (do these now that module 17 exists)
 
 | Module | Field | What to paste |
 |---|---|---|
@@ -203,7 +198,7 @@ If C22 shows a different path, apply its fallback, then run `node tools/preview-
 | 10 | Text | The value from Step 4 |
 
 **Check after**
-- **C19:** IDs 1–18 match ARCHITECTURE §2, and routers and directives have IDs of 19 or higher.
+- **C19:** labels 1–17 are Make IDs 2–18, and routers and directives have IDs of 19 or higher.
 - Every pill is purple; none shows grey "missing" text.
 
 *0 credits.*
@@ -226,20 +221,20 @@ Restore every change after each test. Note each run's duration for C15: compare 
 
 | # | Test (PRD) | How | Checks | Credits | Total |
 |---|---|---|---|---|---|
-| 0 | JSON escaping | Run this module only on 4; in the input dialog give a Fed title containing `"` and `\` | C6 | 1 | 6 |
-| 1 | Happy path (1) | as built | C9, C13, C13b, C18 (save module 2, 3, 17 and 5 outputs and feed them to the preview tool), C8 | 13 | 19 |
-| 2 | Both models fail (2) | Config GEMINI_MODEL and GEMINI_FALLBACK_MODEL = `x` | C14b (both fail) | 16 | 35 |
-| 3 | Bad JSON (3) | module 5 JSON string `{` | C14b (Resume) | 13 | 48 |
-| 4 | Main model fails, fallback answers (3b) | Config GEMINI_MODEL = `x` | C14b (15 succeeds) | 16 | 64 |
-| 5 | BLS broken (4) | module 2 URL `…/bls_latest-x.rss` | C24 (empty bundle) | 13 | 77 |
-| 6 | CoinGecko down (5) | keychain key = `x` | C20 | 13 | 90 |
-| 7 | Fed feed down (6) | module 16 URL `…/speeches-x.xml` | – | 13 | 103 |
-| 8 | All three sources down (7) | tests 5, 6 and 7 together | C13 (fallback route) | 8 | 111 |
-| 9 | Send disabled (7) | Config SEND_ENABLED = FALSE | – | 8 | 119 |
-| 10 | Partial batches (8) | BATCH_SIZE 2. Add a 4th row whose email is the plain string `invalid-address`, placed so it lands in batch 2. Afterwards restore BATCH_SIZE 100 and delete the row | C13b | 13 | 132 |
+| 0 | JSON escaping | Run this module only on 4; in the input dialog give a Fed title containing `"` and `\` | C6 | 1 | 5 |
+| 1 | Happy path (1) | as built | C9, C13, C13b, C18 (save module 2, 3, 17 and 5 outputs and feed them to the preview tool), C8 | 13 | 18 |
+| 2 | Both models fail (2) | Config GEMINI_MODEL and GEMINI_FALLBACK_MODEL = `x` | C14b (both fail) | 16 | 34 |
+| 3 | Bad JSON (3) | module 5 JSON string `{` | C14b (Resume) | 13 | 47 |
+| 4 | Main model fails, fallback answers (3b) | Config GEMINI_MODEL = `x` | C14b (15 succeeds) | 16 | 63 |
+| 5 | BLS broken (4) | module 2 URL `…/timeseries/datax/` (404) | Resume path | 13 | 76 |
+| 6 | CoinGecko down (5) | keychain key = `x` | C20 | 13 | 89 |
+| 7 | Fed feed down (6) | module 16 URL `…/speeches-x.xml` | – | 13 | 102 |
+| 8 | All three sources down (7) | tests 5, 6 and 7 together | C13 (fallback route) | 8 | 110 |
+| 9 | Send disabled (7) | Config SEND_ENABLED = FALSE | – | 8 | 118 |
+| 10 | Partial batches (8) | BATCH_SIZE 2. Add a 4th row whose email is the plain string `invalid-address`, placed so it lands in batch 2. Afterwards restore BATCH_SIZE 100 and delete the row | C13b | 13 | 131 |
 | 11 | *Optional* worst-case credits | module 4 timeout 1 s and Config GEMINI_FALLBACK_MODEL = `x` | C15 (≤ 16 credits) | (16) | (skip) |
-| 12 | Days 2 and 3 | Run this module only on 2 and 16, on each of 2 more days | C23, C25 | 4 | 136 |
+| 12 | Days 2 and 3 | Run this module only on 2 and 16, on each of 2 more days | C23, C25 | 4 | 135 |
 
-**Total ≈ 136 of the 150 test credits** (per-run figures are upper bounds). Test 11 (16 credits) is optional; without it, C15 relies on the credit counts from tests 2 and 4. If Make asks for mapped inputs on test 0, paste the value. If test 0 can't take a crafted title, rely on test 1, and treat C6 as passed only once a live Fed title with a quote or backslash has gone through.
+**Total ≈ 135 of the 150 test credits** (per-run figures are upper bounds). Test 11 (16 credits) is optional; without it, C15 relies on the credit counts from tests 2 and 4. If Make asks for mapped inputs on test 0, paste the value. If test 0 can't take a crafted title, rely on test 1, and treat C6 as passed only once a live Fed title with a quote or backslash has gone through.
 
 Step 8 is BUILD-ORDER §6. §5 (the local quality gate) can run in parallel; then go to §7.

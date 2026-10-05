@@ -12,7 +12,7 @@ Each check is pass/fail. The fallback is already chosen: if a check fails, apply
 2. Slack: create **#marketmorning-alerts**; reuse the existing Make Slack connection.
 3. Make connections: Gmail and Google Sheets with Make's built-in **Sign in with Google** (same as LeadFlow). No Google Cloud OAuth app is needed: Make's custom client is optional, and personal Gmail just needs reauthorizing every 6 months (calendar reminder at 5).
 4. Google Cloud project "marketmorning" **for the service account only**: enable the Google Sheets API, create a service account (no roles), create a JSON key → Vercel env (`GOOGLE_SA_EMAIL`, `GOOGLE_SA_PRIVATE_KEY`) and a local file outside the repo. No OAuth consent screen.
-5. API keys: Gemini (AI Studio) → Make keychain "Gemini" (header `x-goog-api-key`) + `.env`; CoinGecko Demo (developer dashboard) → Make keychain "CoinGecko" (header `x-cg-demo-api-key`) + `.env`.
+5. API keys: BLS Public Data API (free registration at data.bls.gov/registrationEngine) → `.env` as `BLS_API_KEY` and typed into module 2's body in Make; Gemini (AI Studio) → Make keychain "Gemini" (header `x-goog-api-key`) + `.env`; CoinGecko Demo (developer dashboard) → Make keychain "CoinGecko" (header `x-cg-demo-api-key`) + `.env`.
    - **C7** Both `GEMINI_MODEL` and `GEMINI_FALLBACK_MODEL` are set, different, listed by `models.list` for your key, and have a free-tier quota in AI Studio. *Fallback:* pick another stable free-tier Flash/Flash-Lite model from the models page for the failing one (in .env and Config).
 6. Google Account: 2-Step Verification on, create app password "marketmorning-vercel".
    - **C10** App password can be created and nodemailer sends a test mail via smtp.gmail.com:465. *Fallback:* only then create an OAuth client (+ consent screen published to Production) and use nodemailer OAuth2 with a refresh token (env `GMAIL_OAUTH_CLIENT_ID/SECRET/REFRESH_TOKEN`).
@@ -34,14 +34,13 @@ Follow [MAIA-PROMPTS.md](MAIA-PROMPTS.md).
 2. Leave unconfigured every field that references modules 17 or 18: the module 4 and 15 bodies, the Gmail HTML in 6–8, ERR in 9 and the text in 10.
 3. Create 13–15 (the error-route modules only).
 4. Insert 16–17 on the 3 → 4 link (right-click the link › Add a module).
-5. Insert 18 on the 17 → 4 link.
 
 **Phase B:**
 1. Add routers R1/R2, then all directives and filters. These take IDs ≥ 19.
 2. Create JSON only if C6 fails.
 3. Now set R1, paste the bodies and the HTML, and map ERR.
 
-Use 3 `{{TEST_EMAIL+mmN}}` active rows in Subscribers. Single-module checks (C6, C22, C23, C24, C25) use "Run this module only" (≈ 1 credit each).
+Use 3 `{{TEST_EMAIL+mmN}}` active rows in Subscribers. Single-module checks (C6, C22, C23, C25) use "Run this module only" (≈ 1 credit each).
 - **C19** Module order matches ARCHITECTURE §2 and every Make ID is label number + 1 (reference build: Read Feed = ID 2 … BLS match = ID 19; routers/directives ≥ 20), matching the IDs used in the template and prompts. *Fallback:* if a new build has a different offset, regenerate the template and Gemini body for those IDs (CC) instead of rebuilding; IDs can't be renumbered in Make.
 - **C21** Module 1 output lists columns 0–11 labelled `send_enabled` … `gemini_fallback_model`. *Result 2026-10-05:* Make keys them by column number, so every Feed mapping uses `` {{2.`N`}} `` (raw pill text confirmed by copying a pill). *Fallback if a later export differs:* copy one pill's raw text and update the template, prompts and `feedRow` in the preview tool to match.
 - **C6** Module 4 returns 200 when a Fed title contains `"` and `\`, and the schema is accepted. *Fallback:* add JSON › Create JSON (next free ID) before module 4 (+1 credit, already in the 16 worst case). If `responseJsonSchema` is rejected, use `responseSchema` with the same schema minus `additionalProperties`. If Make treats `\`/`\"` in string literals differently from the preview tool, change the tool's tokenizer to match.
@@ -50,10 +49,8 @@ Use 3 `{{TEST_EMAIL+mmN}}` active rows in Subscribers. Single-module checks (C6,
   - *Fallback:* change the `17.…` paths in the template and user prompt to Make's actual structure. Mirror the change in `parseRss()` of the preview tool, then regenerate the Make body.
   - If module 16's "Parse response" already yields the parsed XML, drop module 17 (−1 credit). Then change `18.rss…` to `17.data.rss…` everywhere: template, user prompt, the `FED` expression in R1/ERR, and `ctx.bundles` in the tool.
 - **C23** Module 16 returns 200 RSS (not a challenge page) from Make on 3 test days, and `17.data` shows as text (else map `{{toString(17.data)}}` in module 17). *Fallback:* add header `Accept: application/rss+xml`. If it is still blocked, delete 16–17 (−2 credits), remove `length(FED)` from R1/ERR and the Fed blocks from the template and prompt, and mirror that in the tool.
-- **C24** Module 18 outputs fields `cpi`, `unemployment`, `payrolls`, `ppi` (named groups), with values such as "+0.4%  in Aug 2026"; copy one pill's raw text to confirm the mapping syntax. With BLS empty, it continues with an empty bundle.
-  - *Fallback:* if Make names the groups differently (or needs backticks), replace `19.cpi`…`19.ppi` in the template, user prompt, R1/ERR and module 10 with the exact pill text, and mirror it in `matchBls()` of the tool.
-  - If BLS changed its markup, update `prompts/bls-pattern.make.txt` (test it locally first), then paste the new pattern.
-- **C25** Module 2 returns 200 RSS from Make on 3 test days, and `3.data` shows as text, not binary. *Fallback:* if binary, map `{{toString(3.data)}}` in module 18. If blocked (403), type a contact email (email only, no name) into module 2's User-Agent **in Make only** (never in files; the blueprint scrub removes emails). If still blocked, delete modules 2 and 18 (−2 credits), remove the `18.*` gates from R1, ERR and module 10, remove the BLS blocks from the template and prompt, mirror that in the tool, and regenerate the Make body.
+- **C24** Retired: BLS now comes from the JSON API, so there is no text parser.
+- **C25** Module 2 returns `REQUEST_SUCCEEDED` from Make with 4 series in request order and `calculations.pct_changes` filled (2026-10-05: the BLS RSS feed returned 403 "Access Denied" from Make even with contact details; the keyless API answered 200, so the design moved to the API). *Fallback:* if the API is blocked or over its daily limit, delete module 2, remove the `3.data.Results.series[1].data[1].value` gates from R1, ERR and module 10 and the BLS blocks from the template and prompt, mirror that in the tool, and regenerate the Make body (−1 credit).
 - **C13** R1 "Content OK" passes on a normal run and sends all-empty runs to the fallback route. R1 is one AND group: `` 2.`0` `` Text = `TRUE`, and the source count Numeric > 0. *Fallback:* use Boolean "Equal to" `true` for the first condition. If the count expression errors, split it into three OR groups, each `send_enabled = TRUE` AND one source condition.
 - **C13b** Modules 9/10 on R2's last route can map `7.id`, `8.id`, `9.id`. *Fallback:* drop R2 and chain 6 → 7 → 8 → 9 → 10 with no filters; an empty batch then sends an owner-only copy (same credits, ≤ 2 extra recipients/day).
 - **C14b** These must all work:

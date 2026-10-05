@@ -23,7 +23,8 @@ const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g;
 const MODEL = /\b(?:gemini|gemma|learnlm)-(?:\d|flash|pro|exp|nano)[\w.-]*/gi;
 const SHEET_URL_ID = /(\/spreadsheets\/d\/)[A-Za-z0-9_-]{25,}/g;
 const KEY_PARAMS = /([?&](?:key|api_key|apikey|x_cg_demo_api_key|token)=)(?!\{\{)[^&"\s]+/gi;
-const SECRET_KEYS = /^(api_?key|key|token|access_?token|refresh_?token|password|secret|client_?secret|authorization)$/i;
+const SECRET_KEYS = /^(api_?key|key|token|access_?token|refresh_?token|password|secret|client_?secret|authorization|registrationkey)$/i;
+const BODY_KEY = /(\\?"registrationkey\\?"\s*:\s*\\?")[^"\\]+/gi;
 const ID_KEYS = /^(__IMT\w*__|\w*keychain\w*|connection)$/i;
 const LEAKS = [
   [/AIza[0-9A-Za-z_-]{35}/, 'Google API key'],
@@ -32,6 +33,7 @@ const LEAKS = [
   [/hooks\.slack\.com\/services\//, 'Slack webhook'],
   [/ya29\.|GOCSPX-|"1\/\/0/, 'Google OAuth token/secret'],
   [/-----BEGIN [A-Z ]*PRIVATE KEY-----/, 'private key'],
+  [/registrationkey\\?"\s*:\s*\\?"(?!\{\{|\[)[0-9a-f]{16,}/i, 'BLS API key'],
   [/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/, 'email address'],
   [/\b(?:gemini|gemma|learnlm)-(?:\d|flash|pro|exp|nano)[\w.-]*/i, 'Gemini model name'],
   [/\/spreadsheets\/d\/(?!\{\{)|"spreadsheetId":\s*"(?!\{\{)/, 'Sheet ID'],
@@ -47,6 +49,7 @@ function scrubString(s, key) {
   return s
     .replace(SHEET_URL_ID, '$1{{SHEET_ID}}')
     .replace(KEY_PARAMS, '$1{{REDACTED}}')
+    .replace(BODY_KEY, '$1{{REDACTED}}')
     .replace(EMAIL, key === 'label' ? '{{OWNER_EMAIL}}' : '{{TEST_EMAIL}}')
     .replace(MODEL, '{{GEMINI_MODEL}}');
 }

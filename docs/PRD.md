@@ -22,7 +22,7 @@ Busy readers want a 2-minute, trustworthy view of what the Federal Reserve is sa
 | # | Requirement | Acceptance criteria | Arch |
 |---|---|---|---|
 | FR1 | Make schedule Weekdays (Mon–Fri) 08:00, org time zone America/New_York; runs on market holidays. | Starts at 08:00 ET before and after the 2026-11-01 DST change. | §2 |
-| FR2 | **Latest US economic data:** one BLS "latest numbers" request per run; CPI, unemployment rate, payroll jobs and PPI shown verbatim with their month; "Source: U.S. Bureau of Labor Statistics". | Values equal the feed's; hidden if the feed or pattern fails. | §2 (2, 18) |
+| FR2 | **Latest US economic data:** one BLS Public Data API request per run; CPI, unemployment rate, payroll jobs and PPI (latest, with BLS 1-month changes) shown with their month; "Source: U.S. Bureau of Labor Statistics, retrieved <date>" + BLS's "cannot vouch" statement. | Values equal the API response; hidden if the call fails. | §2 (2) |
 | FR3 | **From the Federal Reserve:** latest 3 speeches (date, linked title), "Source: Federal Reserve Board", not-affiliated note. | Links equal the feed's `link`s. | §2 (16–17) |
 | FR4 | **Crypto:** one CoinGecko Demo call; price and 24 h % for BTC, ETH, SOL, XRP, BNB, DOGE; "Prices as of <last_updated_at> ET"; "Powered by CoinGecko" + logo + link. | Numbers match the response; attribution visible. | §2 (3) |
 | FR5 | One Gemini call per run (plus one retry on the fallback model if it fails): a 3-sentence summary (Fed, data, crypto) and a crypto note. Only numbers from the input, exactly as given; no stock talk, causation or advice. | digest-qa PASS on 5 live previews on 5 different days and on all `--sample` variants. | §2 (4–5), §3.2 |
@@ -38,7 +38,7 @@ Busy readers want a 2-minute, trustworthy view of what the Federal Reserve is sa
 | FR15 | Public scrubbed repo, live section, Loom, README case study, 0-credit local preview tool. | Secret scan clean; `--sample` variants pass digest-qa. | BUILD-ORDER |
 
 ## Non-functional requirements
-- **Credits:** ≤ 400/month. Worst case 16/run × 23 weekdays = 368. Build and test ≤ 150 credits, run in the month before go-live.
+- **Credits:** ≤ 400/month. Worst case 15/run × 23 weekdays = 345. Build and test ≤ 150 credits, run in the month before go-live.
 - **Sending:** ≤ 403 Gmail recipients in any rolling 24 h (303 digest + 100 transactional), under the 500 personal limit.
 - **Timeliness:** Make run history shows completion by 08:10 ET on ≥ 95% of weekdays (checked monthly).
 - **Accuracy and licensing:**
@@ -77,7 +77,7 @@ LeadFlow uses ≤ 600 credits/month and survives the org time-zone change (C1). 
 | Abuse / mail-bombing via signup. | Medium | Honeypot, WAF, per-address cooldown, split budgets. |
 | AI misstates a number or adds interpretation. | Medium | Strict prompt + schema, deterministic tables, digest-qa gate, fallback copy. |
 | Less appeal without market headlines. | Medium | Official, dated, relevant content every day; clear positioning as a Fed/data/crypto brief; a paid feed only if the project goes commercial. |
-| BLS markup or Fed feed changes, or bot blocking from Make's IPs. | Medium | Each section hides itself; checks C22–C25; Slack shows "No BLS data" / "No Fed feed". |
+| BLS API limits or Fed feed changes/blocking from Make's IPs (BLS RSS already blocked). | Medium | Each section hides itself; checks C22, C23, C25; Slack shows "No BLS data" / "No Fed feed". |
 | Make Gmail connection expires (6 months). | Medium | 5-month reauth reminder; Slack failure alert. |
 
 Low: CoinGecko changes Demo terms (quarterly review); Gemini demand spikes (fallback model); chart quota (placeholder image).

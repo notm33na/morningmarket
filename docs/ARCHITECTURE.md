@@ -23,7 +23,7 @@ A **Fed, US data and crypto** brief. There are no stock prices or market headlin
 ## 2. Make scenario (one scenario)
 ```mermaid
 flowchart LR
-  M1[1 Sheets: Feed] --> M2[2 BLS RSS] --> M3[3 CoinGecko] --> M16[16 Fed RSS] --> M17[17 Parse XML] --> M18[18 Match BLS] --> R1{R1}
+  M1[1 Sheets: Feed] --> M2[2 BLS API] --> M3[3 CoinGecko] --> M16[16 Fed RSS] --> M17[17 Parse XML] --> R1{R1}
   R1 -->|content ok| M4[4 Gemini] --> M5[5 Parse JSON] --> R2{R2}
   R2 -->|batches ≥1| M6[6 Gmail]
   R2 -->|≥2| M7[7 Gmail]
@@ -35,7 +35,7 @@ flowchart LR
 ```
 **Schedule:** Weekdays (Mon–Fri), 08:00, organization time zone America/New_York (DST-aware; runs on market holidays too).
 
-**Reference build note:** in the reference scenario ID 1 was consumed by a deleted placeholder, so every **Make ID = label number + 1** ("1 Read Feed" = ID 2 … "18 Match BLS" = ID 19; routers/directives ≥ 20). The table below lists modules by **label number**; all mappings (template, prompts, MAIA-PROMPTS pastes) use the real Make IDs.
+**Reference build note:** in the reference scenario ID 1 was consumed by a deleted placeholder, so every **Make ID = label number + 1** ("1 Read Feed" = ID 2 … "17 Parse Fed RSS" = ID 18; routers/directives ≥ 19). The table below lists modules by **label number**; all mappings (template, prompts, MAIA-PROMPTS pastes) use the real Make IDs.
 
 **Creation order fixes the IDs** (routers and directives take IDs too):
 - **Phase A** creates only modules 1–12 as a plain chain, then:
@@ -43,7 +43,6 @@ flowchart LR
   - **14** = Tools › Sleep;
   - **15** = Gemini with the fallback model;
   - **16** = HTTP Fed RSS and **17** = XML › Parse XML, inserted on the link 3 → 4;
-  - **18** = Text parser › Match pattern (BLS), inserted on the link 17 → 4.
 - **Phase B** adds routers R1/R2, all directives and filters, and rewires. They take IDs ≥ 19, which nothing maps.
 - JSON › Create JSON (only if check C6 fails) takes the next free ID.
 
@@ -52,12 +51,11 @@ flowchart LR
 | ID | Module | Key settings and mappings | Error handler | Credits |
 |---|---|---|---|---|
 | 1 | Google Sheets › Get range values | `Feed!A1:L2`, table contains headers: Yes. Make keys the output by **column number** (header names are only labels): 0 send_enabled, 1 gemini_model, 2 fallback_json, 3 active_count, 4 batch_count, 5–7 batch_1–3, 8 site_url, 9 owner_email, 10 fallback_summary, 11 gemini_fallback_model; mapped as `` {{2.`8`}} `` | 13 Slack "MarketMorning FAILED: Sheet read: {{error.message}}" → **Ignore** (13 also gets its own Ignore handler) | 1 (+1) |
-| 2 | HTTP › Make a request | GET `https://www.bls.gov/feed/bls_latest.rss`; header `` User-Agent: MarketMorning portfolio demo ({{2.`8`}}) ``; parse: No; timeout 20 s | **Resume**, `data` empty | 1 |
+| 2 | HTTP › Make a request | POST `https://api.bls.gov/publicAPI/v2/timeseries/data/`; body content type application/json, JSON string = `prompts/bls-request.make.json` with the BLS key typed into `registrationkey` **in Make only** (the key only works in the body, so no keychain); header `User-Agent: MarketMorning portfolio demo`; parse: Yes; timeout 20 s. Returns CPI, unemployment rate, payrolls, PPI (latest, with 1-month calculations), in that order | **Resume**, `data` empty | 1 |
 | 3 | HTTP › Make a request | GET `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true`; keychain "CoinGecko" (header `x-cg-demo-api-key`); parse: Yes; timeout 20 s | **Resume**, `data` empty | 1 |
 | 16 | HTTP › Make a request | GET `https://www.federalreserve.gov/feeds/speeches.xml`; header `` User-Agent: MarketMorning portfolio demo ({{2.`8`}}) ``; parse: No; timeout 20 s | **Resume**, `data` empty | 1 |
 | 17 | XML › Parse XML | XML `{{17.data}}` (`{{toString(17.data)}}` if it arrives as binary, C23); data structure generated from `samples/fed-speeches.sample.xml` | **Resume**, empty | 1 |
-| 18 | Text parser › Match pattern | Pattern = `prompts/bls-pattern.make.txt`; text `{{3.data}}` (`{{toString(3.data)}}` if binary, C25); global match: No; case sensitive: Yes; **continue the execution of the route even if the module finds no matches: Yes**. Named groups → outputs `cpi`, `unemployment`, `payrolls`, `ppi` (value + month) | Resume | 1 |
-| R1 | Router | Route A "Content OK" (one AND group): `` 2.`0` `` Text = `TRUE` **and** `{{length(FED) + if(4.data.bitcoin.usd; 1; 0) + if(19.cpi; 1; 0)}}` Numeric > `0`. Route B = fallback route "Skip" | – | 0 |
+| R1 | Router | Route A "Content OK" (one AND group): `` 2.`0` `` Text = `TRUE` **and** `{{length(FED) + if(4.data.bitcoin.usd; 1; 0) + if(3.data.Results.series[1].data[1].value; 1; 0)}}` Numeric > `0`. Route B = fallback route "Skip" | – | 0 |
 | 4 | HTTP › Make a request | POST `` https://generativelanguage.googleapis.com/v1beta/models/{{2.`1`}}:generateContent ``; keychain "Gemini" (header `x-goog-api-key`); raw body = `prompts/gemini-body.make.txt` (generated, §3.2); parse: Yes; timeout 60 s | 14 Sleep 10 s → **15** (clone of 4 with `` {{2.`11`}} ``, timeout 40 s) → **Resume** with `data` = `{{16.data}}`; 15's handler: **Resume**, `data` empty | 1 (+2) |
 | 5 | JSON › Parse JSON | `` {{ifempty(5.data.candidates[1].content.parts[1].text; 2.`2`)}} ``; data structure `source`, `summary`, `crypto_note` | **Resume**: `source`=fallback, `summary`=`` {{2.`10`}} ``, `crypto_note` empty | 1 |
 | R2 | Router | →6 filter `` 2.`4` `` ≥ 1 (numeric); →7 ≥ 2; →8 ≥ 3; →9 no filter (last) | – | 0 |
@@ -70,7 +68,7 @@ flowchart LR
 Inline expressions (Gmail "message ID" output shown as `7.id`):
 - `SENT` = `if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)`
 - `STATUS` = `` if(2.`4` = 0; "ok"; if(SENT = 0; "failed"; if(SENT < 2.`4`; "partial"; if(6.source = "fallback"; "ok_no_ai"; "ok")))) ``
-- `ERR` = "AI fallback. " / "No BLS data. " (`19.cpi` empty) / "No crypto data. " / "No Fed feed. " / "Batch failures. ", as applicable (full strings in MAIA-PROMPTS Step 4; module 10 uses the same ERR).
+- `ERR` = "AI fallback. " / "No BLS data. " (`3.data.Results.series[1].data[1].value` empty) / "No crypto data. " / "No Fed feed. " / "Batch failures. ", as applicable (full strings in MAIA-PROMPTS Step 4; module 10 uses the same ERR).
 
 ## 3. Data contracts
 ### 3.1 Sheet tabs (formulas in SHEET.md)
@@ -114,11 +112,11 @@ Tokens are HMAC-signed, expiring and single-use, and state changes only on POST.
 
 ## 5. Budgets
 **Credits per run:**
-- Normal: 1 + 1 (BLS) + 1 + 2 (Fed 16–17) + 1 (18) + 1 + 1 + 3 + 1 + 1 = **13**.
-- Worst: 13 + Gemini retry (14, 15) 2 + Create JSON (next free ID, check C6) 1 = **16**.
-- Skipped run: 8. Sheet failure: 2.
+- Normal: 1 + 1 (BLS) + 1 + 2 (Fed 16–17) + 1 + 1 + 3 + 1 + 1 = **12**.
+- Worst: 12 + Gemini retry (14, 15) 2 + Create JSON (next free ID, check C6) 1 = **15**.
+- Skipped run: 7. Sheet failure: 2.
 
-**Per month (max 23 weekdays):** worst 16 × 23 = **368 ≤ 400**; typical 13 × 22 = 286.
+**Per month (max 23 weekdays):** worst 15 × 23 = **345 ≤ 400**; typical 12 × 22 = 264.
 
 **Testing:** ≤ 150 credits (plan in MAIA-PROMPTS Step 8). Go live in the month after testing, so live + test stays ≤ 400.
 
@@ -138,7 +136,7 @@ Gmail, not credits, limits the subscriber count. **Runtime** worst case ≈ 20 �
 | Call | Failure | Behaviour |
 |---|---|---|
 | Sheets read (1) | API error | Slack alert; no send, no SendLog (documented exception to FR13). |
-| BLS (2) / Match (18) | error, block page, markup change | `19.cpi` empty → data section and credit hidden; summary covers the Fed and crypto. |
+| BLS API (2) | error, 403, `REQUEST_NOT_PROCESSED` (e.g. daily limit) | `3.data.Results.series[1].data[1].value` empty → data section and credit hidden; summary covers the Fed and crypto. |
 | CoinGecko (3) | error / 429 | "Crypto prices unavailable today."; table, chart and credit hidden; `crypto_note` empty. |
 | Fed RSS (16) / Parse XML (17) | error, non-XML | Empty `FED` → Fed section hidden. |
 | BLS, CoinGecko and Fed all empty, or SEND_ENABLED off | – | Route B: SendLog `skipped` + Slack. |
@@ -154,7 +152,7 @@ Gmail, not credits, limits the subscriber count. **Runtime** worst case ≈ 20 �
 |---|---|---|
 | No stock prices: no free stock API licenses third-party display | [DATA-SOURCES.md](DATA-SOURCES.md) | Decided |
 | No market headlines: no free news API licenses display; GDELT unreachable from Make, Google and local networks (2026-10-05) | [DATA-SOURCES.md](DATA-SOURCES.md) | Decided (owner: "Fed, no paid APIs") |
-| Official data from BLS "latest numbers" RSS (public domain, cite BLS) | [24], [26] | Decided (C24) |
+| Official data from the BLS Public Data API v2 (free key; RSS feed is blocked from Make by BLS bot protection). Cite the retrieval date and BLS's "cannot vouch" statement; no BLS logo | [24], [26] | Decided (C25) |
 | Fed speeches RSS (public domain, cite the Board, no seal) | [25], [27] | Decided (C22, C23) |
 | Crypto from CoinGecko Demo API with "Powered by CoinGecko" + logo + link | [1], [2], [3] | Decided |
 | BEA not used: +2 credits would exceed 400/month worst case | – | Decided |
@@ -174,4 +172,4 @@ Gmail, not credits, limits the subscriber count. **Runtime** worst case ≈ 20 �
 | API keys in Make API-key keychains, not in the blueprint | [23] | Decided |
 | New Slack channel #marketmorning-alerts | owner choice | Decided |
 
-Refs [4]–[6] and checks C3–C5, C12 were retired with the headline design. [1] coingecko.com/en/api_terms · [2] coingecko.com/en/api/pricing · [3] brand.coingecko.com/resources/attribution-guide · [7] help.make.com/manage-time-zones · [8] help.make.com/schedule-a-scenario · [9] make.com/en/pricing · [10] help.make.com/how-features-use-credits · [11] ai.google.dev/gemini-api/docs/models · [12] ai.google.dev/api/generate-content · [13] ai.google.dev/gemini-api/docs/pricing · [14] support.google.com/mail/answer/22839 · [15] apps.make.com/gmail-modules · [16] apps.make.com/google-email · [17] developers.google.com/workspace/guides/create-credentials#service-account · [18] support.google.com/mail/answer/185833 · [19] quickchart.io/pricing · [20] community.quickchart.io/t/rate-limits-for-quickchart-free-plan/722 · [21] vercel.com/docs/caching/cdn-cache · [22] vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting · [23] apps.make.com/api-key-authentication-type · [24] bls.gov/feed/ · [25] federalreserve.gov/feeds/feeds.htm · [26] bls.gov/opub/copyright-information.htm · [27] federalreserve.gov/disclaimer.htm
+Refs [4]–[6] and checks C3–C5, C12 were retired with the headline design. [1] coingecko.com/en/api_terms · [2] coingecko.com/en/api/pricing · [3] brand.coingecko.com/resources/attribution-guide · [7] help.make.com/manage-time-zones · [8] help.make.com/schedule-a-scenario · [9] make.com/en/pricing · [10] help.make.com/how-features-use-credits · [11] ai.google.dev/gemini-api/docs/models · [12] ai.google.dev/api/generate-content · [13] ai.google.dev/gemini-api/docs/pricing · [14] support.google.com/mail/answer/22839 · [15] apps.make.com/gmail-modules · [16] apps.make.com/google-email · [17] developers.google.com/workspace/guides/create-credentials#service-account · [18] support.google.com/mail/answer/185833 · [19] quickchart.io/pricing · [20] community.quickchart.io/t/rate-limits-for-quickchart-free-plan/722 · [21] vercel.com/docs/caching/cdn-cache · [22] vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting · [23] apps.make.com/api-key-authentication-type · [24] bls.gov/developers/api_signature_v2.htm · [25] federalreserve.gov/feeds/feeds.htm · [26] bls.gov/developers/termsOfService.htm · [27] federalreserve.gov/disclaimer.htm

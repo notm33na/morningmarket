@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // MarketMorning local preview (0 Make credits). Node 18+, no dependencies.
 //
-//   node tools/preview-digest.mjs            live: BLS latest numbers + CoinGecko + Fed speeches RSS + Gemini, keys from .env
+//   node tools/preview-digest.mjs            live: BLS Public Data API + CoinGecko + Fed speeches RSS + Gemini, keys from .env
 //   node tools/preview-digest.mjs --sample   samples/ only, no network calls
 //     add --variant=no-crypto | no-bls | no-fed | ai-fallback to test the degraded paths
 //   node tools/preview-digest.mjs --make-body   print the raw Gemini body to paste into Make module 4
@@ -24,7 +24,7 @@ if (VARIANT && !['no-crypto', 'no-bls', 'no-fed', 'ai-fallback'].includes(VARIAN
 
 const COINGECKO_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true';
 const FED_URL = 'https://www.federalreserve.gov/feeds/speeches.xml';
-const BLS_URL = 'https://www.bls.gov/feed/bls_latest.rss';
+const BLS_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
 const GEMINI_RETRY_MS = 10_000; // matches the Make Sleep module (14) before the fallback-model retry (15)
 
 // ---------- .env ----------
@@ -59,12 +59,6 @@ function buildFeed(env) {
   };
 }
 
-// Mirrors Make's Text parser › Match pattern (global: No, continue on no match: Yes):
-// one bundle with the named groups (cpi, unemployment, payrolls, ppi), or an empty bundle when it doesn't match.
-function matchBls(text) {
-  const m = text ? text.match(new RegExp(read('prompts/bls-pattern.make.txt').trim())) : null;
-  return m ? { ...m.groups } : {};
-}
 
 // ---------- Make expression evaluator (subset used by our templates) ----------
 function tokenize(src) {
@@ -82,7 +76,7 @@ function tokenize(src) {
     }
     const two = src.slice(i, i + 2);
     if (['>=', '<=', '!='].includes(two)) { out.push({ t: 'op', v: two }); i += 2; continue; }
-    if ('()=<>+-;'.includes(c)) { out.push({ t: c === '(' || c === ')' || c === ';' ? c : 'op', v: c }); i++; continue; }
+    if ('()=<>+-*;'.includes(c)) { out.push({ t: c === '(' || c === ')' || c === ';' ? c : 'op', v: c }); i++; continue; }
     const m = src.slice(i).match(/^[A-Za-z0-9_.$`\[\]]+/);
     if (!m) throw new Error(`Unexpected "${c}" in {{${src}}}`);
     out.push({ t: 'word', v: m[0] }); i += m[0].length;
@@ -102,10 +96,15 @@ function parse(tokens) {
     return left;
   }
   function additive() {
-    let left = primary();
+    let left = multiplicative();
     while (peek()?.t === 'op' && (peek().v === '+' || peek().v === '-')) {
-      const op = eat().v; left = { k: 'arith', op, a: left, b: primary() };
+      const op = eat().v; left = { k: 'arith', op, a: left, b: multiplicative() };
     }
+    return left;
+  }
+  function multiplicative() {
+    let left = primary();
+    while (peek()?.t === 'op' && peek().v === '*') { eat(); left = { k: 'arith', op: '*', a: left, b: primary() }; }
     return left;
   }
   function primary() {
@@ -203,6 +202,7 @@ function evaluate(node, ctx) {
     case 'arith': {
       const a = evaluate(node.a, ctx), b = evaluate(node.b, ctx);
       if (node.op === '-') return num(a) - num(b);
+      if (node.op === '*') return num(a) * num(b);
       return !Number.isNaN(num(a)) && !Number.isNaN(num(b)) ? num(a) + num(b) : `${a ?? ''}${b ?? ''}`;
     }
     case 'cmp': {
@@ -278,20 +278,20 @@ async function main() {
   const env = loadEnv();
   const feed = buildFeed(env);
   const now = new Date();
-  let blsText, coingecko, fed, geminiResponse;
+  let bls, coingecko, fed, geminiResponse;
 
   if (FROM) {
     const rd = (f) => readFileSync(join(FROM, f), 'utf8');
-    blsText = rd('bls.rss');
+    bls = JSON.parse(rd('bls.json'));
     coingecko = JSON.parse(rd('coingecko.json'));
     fed = parseRss(rd('fed.xml'));
     geminiResponse = { candidates: [{ content: { parts: [{ text: rd('gemini-output.json') }] } }] };
   } else if (SAMPLE) {
-    blsText = read('samples/bls-latest.sample.rss');
+    bls = JSON.parse(read('samples/bls-api.sample.json'));
     coingecko = JSON.parse(read('samples/coingecko.sample.json'));
     fed = parseRss(read('samples/fed-speeches.sample.xml'));
     if (VARIANT === 'no-crypto') coingecko = undefined; // Make module 3 Resumes with empty data
-    if (VARIANT === 'no-bls') blsText = undefined; // module 2 Resumes with empty data
+    if (VARIANT === 'no-bls') bls = undefined; // module 2 Resumes with empty data
     if (VARIANT === 'no-fed') fed = undefined; // modules 16-17 Resume with empty data
     if (VARIANT === 'ai-fallback') geminiResponse = undefined; // modules 4 and 15 both failed
     else {
@@ -299,25 +299,31 @@ async function main() {
       geminiResponse = { candidates: [{ content: { parts: [{ text: JSON.stringify(out) }] }, finishReason: 'STOP' }] };
     }
   } else {
-    for (const k of ['GEMINI_API_KEY', 'GEMINI_MODEL', 'COINGECKO_API_KEY']) if (!env[k]) throw new Error(`Missing ${k} in .env (or use --sample)`);
+    for (const k of ['GEMINI_API_KEY', 'GEMINI_MODEL', 'COINGECKO_API_KEY', 'BLS_API_KEY']) if (!env[k]) throw new Error(`Missing ${k} in .env (or use --sample)`);
     if (!env.GEMINI_FALLBACK_MODEL) console.warn('  GEMINI_FALLBACK_MODEL is not set: the retry reuses GEMINI_MODEL here, but Make module 15 would fail (check C7).');
-    blsText = await getText(BLS_URL, { 'user-agent': `MarketMorning portfolio demo (${feed.site_url})` });
+    // Same body as Make module 2 (prompts/bls-request.make.json); the key is only in .env / Make
+    const blsBody = read('prompts/bls-request.make.json').replace('[BLS API KEY - type it in Make only]', env.BLS_API_KEY || '');
+    try {
+      const r = await fetch(BLS_URL, { method: 'POST', headers: { 'content-type': 'application/json', 'user-agent': 'MarketMorning portfolio demo' }, body: blsBody, signal: AbortSignal.timeout(20_000) });
+      bls = r.ok ? await r.json() : undefined;
+      if (!r.ok) console.warn(`  api.bls.gov: HTTP ${r.status} -> treated as empty (Make Resume)`);
+      else if (bls.status !== 'REQUEST_SUCCEEDED') console.warn(`  api.bls.gov: ${bls.status} ${JSON.stringify(bls.message)}`);
+    } catch (e) { console.warn(`  api.bls.gov: ${e.message} -> treated as empty`); }
     coingecko = await getJson(COINGECKO_URL, { 'x-cg-demo-api-key': env.COINGECKO_API_KEY });
     fed = parseRss(await getText(FED_URL, { 'user-agent': `MarketMorning portfolio demo (${feed.site_url})` }));
     if (!fed) console.warn('  Fed speeches feed: empty or not RSS -> treated as empty');
   }
 
-  const bls = matchBls(blsText);
-  if (!SAMPLE && isEmpty(bls.cpi)) console.warn('  BLS latest numbers: pattern did not match -> section hidden');
+  const blsSeries = bls?.Results?.series ?? [];
   // Make keys Get Range Values output by column index (0–11); header names are labels only (check C21)
   const FEED_COLUMNS = ['send_enabled', 'gemini_model', 'fallback_json', 'active_count', 'batch_count', 'batch_1', 'batch_2', 'batch_3', 'site_url', 'owner_email', 'fallback_summary', 'gemini_fallback_model']; // Feed A–L
   const feedRow = Object.fromEntries(FEED_COLUMNS.map((k, i) => [String(i), feed[k]]));
   // Make IDs in the reference build are label number + 1 (ID 1 was used by a deleted placeholder)
-  const ctx = { now, bundles: { 2: feedRow, 3: { data: blsText }, 4: { data: coingecko }, 18: fed, 19: bls } };
+  const ctx = { now, bundles: { 2: feedRow, 3: { data: bls }, 4: { data: coingecko }, 18: fed } };
 
   // Router R1
   const fedItems = fed?.rss?.channel?.item ?? [];
-  if (feed.send_enabled !== 'TRUE' || (fedItems.length === 0 && isEmpty(coingecko?.bitcoin?.usd) && isEmpty(bls.cpi))) {
+  if (feed.send_enabled !== 'TRUE' || (fedItems.length === 0 && isEmpty(coingecko?.bitcoin?.usd) && isEmpty(blsSeries[0]?.data?.[0]?.value))) {
     console.log('SKIPPED (route B): no Fed feed, no crypto data and no BLS data.');
     return;
   }
@@ -344,7 +350,7 @@ async function main() {
     mode: FROM ? 'from-make' : SAMPLE ? `sample${VARIANT ? ':' + VARIANT : ''}` : 'live',
     generated_at: now.toISOString(),
     feed: { ...feed, batch_1: '(redacted)' },
-    bls_values: bls,
+    bls,
     coingecko,
     fed_speeches: fedItems,
     gemini_user_text: bodyJson.contents[0].parts[0].text,

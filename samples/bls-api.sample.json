@@ -1,0 +1,13 @@
+{
+  "status": "REQUEST_SUCCEEDED",
+  "responseTime": 120,
+  "message": [],
+  "Results": {
+    "series": [
+      { "seriesID": "CUSR0000SA0", "data": [ { "year": "2026", "period": "M08", "periodName": "August", "latest": "true", "value": "333.902", "footnotes": [ {} ], "calculations": { "net_changes": {}, "pct_changes": { "1": "0.3", "3": "0.1", "6": "1.8", "12": "3.2" } } } ] },
+      { "seriesID": "LNS14000000", "data": [ { "year": "2026", "period": "M09", "periodName": "September", "latest": "true", "value": "4.3", "footnotes": [ {} ], "calculations": { "net_changes": { "1": "0.1" }, "pct_changes": { "1": "2.4" } } } ] },
+      { "seriesID": "CES0000000001", "data": [ { "year": "2026", "period": "M09", "periodName": "September", "latest": "true", "value": "159056", "footnotes": [ { "code": "P", "text": "preliminary" } ], "calculations": { "net_changes": { "1": "41" }, "pct_changes": { "1": "0.0" } } } ] },
+      { "seriesID": "WPSFD4", "data": [ { "year": "2026", "period": "M08", "periodName": "August", "latest": "true", "value": "157.2", "footnotes": [ { "code": "P", "text": "Preliminary." } ], "calculations": { "net_changes": {}, "pct_changes": { "1": "0.2" } } } ] }
+    ]
+  }
+}
