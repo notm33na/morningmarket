@@ -58,7 +58,7 @@ Module 3 – HTTP › Make a request. Label: "3 CoinGecko prices". URL: https://
 ```
 In "MarketMorning", after module 3, add exactly two modules in this order, chained 3 → 4 → 5. Do not change modules 1–3. No other modules, routers, filters or error handlers. Do not run or activate the scenario. Stop and ask if a connection or keychain is needed. Rename each module to its label.
 
-Module 4 – HTTP › Make a request. Label: "4 Gemini digest". URL: https://generativelanguage.googleapis.com/v1beta/models/{{1.gemini_model}}:generateContent (map 1.gemini_model as a pill). Method: POST. Authentication: API key, keychain [GEMINI KEYCHAIN] (stop and ask me to create it: key in header x-goog-api-key). Body type: Raw. Content type: JSON (application/json). Request content: leave EMPTY – I will paste it. Parse response: Yes. Timeout: 60 seconds. Evaluate all states as errors: Yes.
+Module 4 – HTTP › Make a request. Label: "4 Gemini digest". URL: https://generativelanguage.googleapis.com/v1beta/models/{{1.gemini_model}}:generateContent (map 1.gemini_model as a pill). Method: POST. Authentication: API key, keychain [GEMINI KEYCHAIN] (stop and ask me to create it: key in header x-goog-api-key). Body type: Raw. Content type: JSON (application/json). Request content: {} (a temporary placeholder; Make will not save an empty JSON body – I will replace it). Parse response: Yes. Timeout: 60 seconds. Evaluate all states as errors: Yes.
 
 Module 5 – JSON › Parse JSON. Label: "5 Parse digest". JSON string: leave EMPTY. Data structure: leave EMPTY – I will create it.
 ```
@@ -67,9 +67,9 @@ Module 5 – JSON › Parse JSON. Label: "5 Parse digest". JSON string: leave EM
 - **Module 5, data structure:** **Add**, then **Generator** (content type JSON), and paste:
   `{"source":"","summary":"","crypto_note":""}`
 - **Module 5, JSON string:** `{{ifempty(4.data.candidates[1].content.parts[1].text; 1.fallback_json)}}`
-- Module 4's body waits until Step 5c, because it references modules 17 and 18.
+- Module 4's real body waits until Step 5c, because it references modules 17 and 18. Until then it holds the placeholder `{}` (Make won't save an empty Raw/JSON body); don't run module 4 before Step 5c.
 
-**Check after Maia:** IDs 1–3 unchanged and still configured; new IDs 4 and 5; the URL has the `1.gemini_model` pill; no body yet.
+**Check after Maia:** IDs 1–3 unchanged and still configured; new IDs 4 and 5; the URL has the `1.gemini_model` pill; the body is just `{}`.
 
 *No runs. Running total: 3 / 150.*
 
