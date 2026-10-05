@@ -1,63 +1,83 @@
 # MarketMorning PRD
 
-**Status:** spec v1, 2026-10-05. **Type:** portfolio demo by M&S Manger on Make.com. Not financial advice.
+**Status:** spec v2, 2026-10-05. **Type:** portfolio demo by M&S Manger on Make.com. Not financial advice.
 
 ## Problem, users, goals
-Busy retail readers want a 2-minute view of what moved US markets and crypto, and why, before their day starts; apps are noisy and newsletters are paid. **Users:** members of the public who opt in on the site and read it daily. **Owner:** M&S Manger (operates it; private Dashboard).
+Busy readers want a 2-minute, trustworthy view of what the Federal Reserve is saying, what the latest official US data show, and where crypto stands, before their day starts. **Users:** members of the public who opt in on the site and read it daily. **Owner:** M&S Manger (operates it; private Dashboard).
 
-**Goals:** (1) one accurate digest every weekday at 08:00 New York time at $0; (2) no invented numbers or links, and only data we are licensed to show; (3) show production habits on Make Free: credit budget, error handling, double opt-in, monitoring.
-**Non-goals:** stock prices, % changes or index levels (no free source licenses third-party display; see [DATA-SOURCES.md](DATA-SOURCES.md)); personal watchlists; advice or signals; non-English; real-time alerts; public stats; paid data.
+**Goals:**
+1. One accurate brief every weekday at 08:00 New York time, at $0.
+2. Only data we are licensed to show, and no invented numbers or links.
+3. Show production habits on Make Free: credit budget, error handling, double opt-in and monitoring.
+
+**Non-goals:**
+- Stock prices, market headlines and paid data. The [DATA-SOURCES.md](DATA-SOURCES.md) research found no free licensed source, and GDELT was unreachable in testing.
+- Personal watchlists.
+- Advice, predictions or interpretation.
+- Non-English content, real-time alerts and public stats.
+
+*Change from the original brief:* "headlines with links" and "top movers" were replaced by official Fed and BLS content, a licensing and reliability decision the owner made on 2026-10-05.
 
 ## Functional requirements
 | # | Requirement | Acceptance criteria | Arch |
 |---|---|---|---|
 | FR1 | Make schedule Weekdays (Mon–Fri) 08:00, org time zone America/New_York; runs on market holidays. | Starts at 08:00 ET before and after the 2026-11-01 DST change. | §2 |
-| FR2 | Headlines: one GDELT DOC call per run (last 24 h, English, ≤ 6 articles) from the News tab terms; plus a fixed "From the Federal Reserve" section with the latest 3 speeches (dated, linked, "Source: Federal Reserve Board"). | Every story/headline link equals a GDELT `url`; every Fed link equals a feed `link`. | §2 (2, 16–17) |
-| FR3 | Crypto: one CoinGecko Demo call per run; price + 24 h % for BTC, ETH, SOL, XRP, BNB, DOGE; "Prices as of <last_updated_at> ET"; "Powered by CoinGecko" + logo + link beside the data. | Numbers match the CoinGecko response; attribution visible. | §2 (3), template |
-| FR4 | One Gemini call per run (plus one retry on the fallback model if it fails): 3-sentence summary, the 2 most market-relevant headlines (by id) with one "why it matters" sentence each, a crypto note. No stock numbers; only crypto numbers from input. | digest-qa PASS on 5 live previews on 5 different days, plus the degraded `--sample` variants; no advice words. | §2 (4–5), §3.2 |
-| FR5 | Deterministic parts: crypto table, chart data and all links come from API responses, not AI. | Story links are GDELT links looked up by id. | template |
-| FR6 | QuickChart bar chart of crypto 24 h % via the cached `/api/mm/chart` proxy, data frozen in the URL. | Correct chart in Gmail web and iOS Mail a day later; alt text. | §4, §5 |
-| FR7 | One digest for all, from the owner's Gmail, BCC batches of 100 (To: owner). Footer: "For information only. Not financial advice." + unsubscribe link + "A portfolio demo by M&S Manger" + GDELT, CoinGecko and Federal Reserve Board credits for the sections shown; `List-Unsubscribe` header. | Test subscribers receive it; no one sees another address. | §2 (6–8) |
-| FR8 | Fallbacks: Gemini error → one retry on `GEMINI_FALLBACK_MODEL`, then plain digest whose footer says it was not written by AI; GDELT error → summary from Fed speeches, stories hidden; CoinGecko error → no crypto; all sources empty or SEND_ENABLED off → no send + alert. Subtitle and footer only claim what is true. | Forced failures behave as stated. | §6 |
-| FR9 | Site section "Live demo: MarketMorning": email + consent + privacy note → `pending` → double opt-in email; link (72 h) opens a page whose button (POST) confirms. | → `active` (or `waitlist` at cap); expired/reused/prefetched link changes nothing. | SITE |
-| FR10 | Cap 300 active; confirmations beyond → `waitlist`; oldest waitlisted promoted on unsubscribe. | 301st confirmation → `waitlist`. | SITE, §5 |
-| FR11 | `/unsubscribe` page → email → link (24 h) → page button (POST) → `unsubscribed`. Replies saying "unsubscribe" handled by the owner. | Responses never reveal whether an address is subscribed. | SITE |
-| FR12 | Abuse controls: honeypot, syntax + MX check, WAF 10 req/60 s per IP, rolling-24 h email budgets (70 confirm, 30 unsubscribe), ≤ 1 email per address per 15 min and ≤ 3/24 h. | Bot fill creates no row; 11th request in 60 s → 429; signup floods can't block unsubscribes. | SITE |
-| FR13 | One SendLog row per run (except when the Sheet itself is unreadable); Slack to #marketmorning-alerts each run; Dashboard tab. | All update after each test run. | §2 (9–12), SHEET |
-| FR14 | Public scrubbed repo, live section, Loom, README case study; local preview tool (0 credits). | Secret/real-email scan clean; `--sample` preview passes digest-qa. | BUILD-ORDER |
+| FR2 | **Latest US economic data:** one BLS "latest numbers" request per run; CPI, unemployment rate, payroll jobs and PPI shown verbatim with their month; "Source: U.S. Bureau of Labor Statistics". | Values equal the feed's; hidden if the feed or pattern fails. | §2 (2, 18) |
+| FR3 | **From the Federal Reserve:** latest 3 speeches (date, linked title), "Source: Federal Reserve Board", not-affiliated note. | Links equal the feed's `link`s. | §2 (16–17) |
+| FR4 | **Crypto:** one CoinGecko Demo call; price and 24 h % for BTC, ETH, SOL, XRP, BNB, DOGE; "Prices as of <last_updated_at> ET"; "Powered by CoinGecko" + logo + link. | Numbers match the response; attribution visible. | §2 (3) |
+| FR5 | One Gemini call per run (plus one retry on the fallback model if it fails): a 3-sentence summary (Fed, data, crypto) and a crypto note. Only numbers from the input, exactly as given; no stock talk, causation or advice. | digest-qa PASS on 5 live previews on 5 different days and on all `--sample` variants. | §2 (4–5), §3.2 |
+| FR6 | Deterministic parts: data table, speech list, crypto table, chart and all links come from the feeds, not AI. | – | template |
+| FR7 | QuickChart bar chart of crypto 24 h % via the cached `/api/mm/chart` proxy, data frozen in the URL. | Correct chart a day later in Gmail web and iOS Mail; alt text. | SITE, §5 |
+| FR8 | One email for all, from the owner's Gmail, BCC batches of 100 (To: owner). Footer: "For information only. Not financial advice." + unsubscribe link + "A portfolio demo by M&S Manger" + credits for the sections shown; `List-Unsubscribe` header. | No one sees another address. | §2 (6–8) |
+| FR9 | Fallbacks: Gemini fails → one retry on `GEMINI_FALLBACK_MODEL`, then a plain brief whose footer says it was not written by AI. A failed source hides only its own section. All sources empty or SEND_ENABLED off → no send + alert. | Forced failures behave as stated. | §6 |
+| FR10 | Site section "Live demo: MarketMorning": email + consent + privacy note → `pending` → double opt-in email; link (72 h) opens a page whose button (POST) confirms. | → `active` (or `waitlist` at cap); expired, reused or prefetched links change nothing. | SITE |
+| FR11 | Cap of 300 active; confirmations beyond go to `waitlist`; the oldest waitlisted is promoted on unsubscribe. | The 301st confirmation goes to `waitlist`. | SITE, §5 |
+| FR12 | `/unsubscribe` page → link (24 h) → POST button → `unsubscribed`; replies saying "unsubscribe" handled by the owner. | Never reveals whether an address is subscribed. | SITE |
+| FR13 | Abuse controls: honeypot, syntax + MX check, WAF 10 req/60 s per IP, rolling-24 h email budgets (70 confirm / 30 unsubscribe), ≤ 1 email per address per 15 min and ≤ 3 per 24 h. | Bot fill creates no row; signup floods can't block unsubscribes. | SITE |
+| FR14 | One SendLog row per run (except when the Sheet is unreadable); Slack message each run; Dashboard tab. | All update after each test run. | §2 (9–12), SHEET |
+| FR15 | Public scrubbed repo, live section, Loom, README case study, 0-credit local preview tool. | Secret scan clean; `--sample` variants pass digest-qa. | BUILD-ORDER |
 
 ## Non-functional requirements
-- **Credits:** ≤ 400/month. Max 15/run × 23 weekdays = 345; build/test ≤ 150 (single-module checks where possible), scheduled so the go-live month stays ≤ 400.
+- **Credits:** ≤ 400/month. Worst case 16/run × 23 weekdays = 368. Build and test ≤ 150 credits, run in the month before go-live.
 - **Sending:** ≤ 403 Gmail recipients in any rolling 24 h (303 digest + 100 transactional), under the 500 personal limit.
-- **Timeliness:** Make run history shows completion by 08:10 ET on ≥ 95% of weekdays (owner checks monthly).
-- **Accuracy and licensing:** zero invented numbers/links; no stock numbers; every displayed dataset has a licence for display plus the required attribution.
-- **Privacy:** store only email, status, timestamps, nonce (TxLog keeps a hash only). Processors: Google (Sheets, Gmail), Make (reads BCC lists; "Data is confidential"), Vercel. Never sent to Gemini, Slack or analytics. Unsubscribed and > 7-day pending rows purged monthly. Privacy note on the form.
-- **Security:** no secrets in files; HMAC-SHA256 tokens with expiry + single-use nonce; state changes only via POST; Sheet writes as RAW.
-- **Cost:** $0.
+- **Timeliness:** Make run history shows completion by 08:10 ET on ≥ 95% of weekdays (checked monthly).
+- **Accuracy and licensing:**
+  - Zero invented numbers or links.
+  - Every dataset shown is public domain or licensed for display, with the required credit: BLS, the Federal Reserve Board, CoinGecko.
+- **Privacy:**
+  - Store only email, status, timestamps and nonce (TxLog keeps a hash only).
+  - Processors are Google, Make (scenario set to "Data is confidential") and Vercel. Subscriber data never goes to Gemini, Slack or analytics.
+  - Purge unsubscribed rows and rows pending > 7 days monthly. The form carries a privacy note.
+- **Security:** no secrets in files; HMAC-SHA256 tokens with single-use nonces; state changes only via POST; Sheet writes as RAW.
+- **Cost:** $0, no paid APIs.
 
 ## Assumptions
-LeadFlow uses ≤ 600 credits/month and its timing survives the org time-zone change (check C1). The owner sends ≤ ~95 other recipients/day from this Gmail. Gmail counts every BCC recipient. The digest stays free and ad-free (non-commercial), which the CoinGecko Demo licence and GDELT terms require or allow.
+LeadFlow uses ≤ 600 credits/month and survives the org time-zone change (C1). The owner sends ≤ ~95 other recipients/day. Gmail counts every BCC recipient. The brief stays free and ad-free (non-commercial).
 
 ## Test list
-1. Happy path, 3 `{{TEST_EMAIL+tag}}` subscribers: content, BCC privacy, SendLog `ok`, Slack.
-2. Gemini wrong key → `ok_no_ai`, fallback summary, stories = headlines 1–2, still sent. 3. Bad JSON → fallback.
-4. GDELT bad URL → "Headlines unavailable today.", no stories, summary from Fed speeches. 5. CoinGecko bad key → "Crypto prices unavailable today."; no table, chart or crypto credit; email still sent (C20). 6. GDELT, CoinGecko and Fed feed all empty, or SEND_ENABLED FALSE → `skipped` + alert. 6b. Fed feed bad URL → Fed section hidden, rest unchanged.
-7. Invalid BCC in batch 2 (4 test rows, BATCH_SIZE 2) → `partial`; SendLog + Slack still run; 1 batch only → SendLog + Slack run.
-8. Signup: valid, bad syntax, no-MX, honeypot, duplicate, resubscribe, leading `=`.
-9. Tokens: valid, expired, tampered, reused, wrong action, GET-only (scanner) → no state change.
-10. Cap 2 → 3rd `waitlist`; unsubscribe → promotion. 11. 429 from WAF; confirm budget exhausted → unsubscribe still sends; per-address cooldown.
-12. digest-qa 5/5 (no stock numbers, crypto numbers match input, links from GDELT or the Fed feed); render in Gmail web/Android, iOS Mail, Outlook web.
-13. DST: runs on 2026-10-30 and 2026-11-02 at 08:00 ET.
+1. **Happy path,** 3 `{{TEST_EMAIL+tag}}` subscribers: content, BCC privacy, SendLog `ok`, Slack message.
+2. **Both Gemini models fail** → `ok_no_ai`, fallback summary and footer.
+3. **Bad JSON** → fallback. 3b. **Main model fails, fallback answers** → AI summary.
+4. **BLS URL broken** → data section hidden.
+5. **CoinGecko bad key** → "Crypto prices unavailable today."; no table, chart or credit.
+6. **Fed feed broken** → Fed section hidden.
+7. **All three sources broken,** or SEND_ENABLED FALSE → `skipped` + alert.
+8. **Invalid BCC in batch 2** → `partial`; SendLog and Slack still run.
+9. **Signup:** valid, bad syntax, no MX record, honeypot filled, duplicate, resubscribe, leading `=`.
+10. **Tokens:** valid, expired, tampered, reused, wrong action, GET-only.
+11. **Cap 2** → the 3rd confirmation gets `waitlist`; an unsubscribe promotes it. **Rate limits:** 429 at 11 requests in 60 s; unsubscribe emails still send when the confirm budget is exhausted.
+12. **digest-qa:** live and sample previews pass. **Rendering:** checked in Gmail web, Gmail Android, iOS Mail and Outlook web.
+13. **DST:** runs on 2026-10-30 and 2026-11-02 both start at 08:00 ET.
 
 ## Risks
 | Risk | Level | Mitigation |
 |---|---|---|
-| Gmail flags bulk BCC from a personal account. | Medium | 100/batch, ≤ 403/24 h, opt-in only, MX check, email budgets. |
-| Spam-folder delivery. | Medium | Gmail-signed mail, steady sender/subject, simple HTML, opt-in, `List-Unsubscribe`, confirm email asks to add sender to contacts. |
-| Abuse / mail-bombing via signup. | Medium | Honeypot, WAF, per-address cooldown, split budgets, confirm email has no content. |
-| AI states a stock number or an unsupported claim. | Medium | Prompt rule 1 + schema, digest-qa gate (rejects any stock number), fallback copy. |
-| Less value without stock prices. | Medium | Stories + "why it matters" + crypto data; a licensed stock feed can be added if the project ever goes commercial. |
-| Make Gmail connection expires (personal accounts: 6 months). | Medium | 5-month reauth reminder; Slack failure alert. |
-| GDELT throttles Make's shared IPs (seen locally: 429 and timeouts). | Medium | Fixed Fed section keeps the email useful; check C12 measures it; DATA-SOURCES lists next candidates. |
+| Gmail flags bulk BCC from a personal account. | Medium | 100/batch, ≤ 403 per 24 h, opt-in only, MX check, email budgets. |
+| Spam-folder delivery. | Medium | Gmail-signed mail, steady sender/subject, simple HTML, opt-in, `List-Unsubscribe`, confirmation email asks readers to add the sender to contacts. |
+| Abuse / mail-bombing via signup. | Medium | Honeypot, WAF, per-address cooldown, split budgets. |
+| AI misstates a number or adds interpretation. | Medium | Strict prompt + schema, deterministic tables, digest-qa gate, fallback copy. |
+| Less appeal without market headlines. | Medium | Official, dated, relevant content every day; clear positioning as a Fed/data/crypto brief; a paid feed only if the project goes commercial. |
+| BLS markup or Fed feed changes, or bot blocking from Make's IPs. | Medium | Each section hides itself; checks C22–C25; Slack shows "No BLS data" / "No Fed feed". |
+| Make Gmail connection expires (6 months). | Medium | 5-month reauth reminder; Slack failure alert. |
 
-Low: CoinGecko changes Demo terms (quarterly review; crypto degrades to "unavailable"); Gemini demand spikes (fallback model); Fed feed blocked or changed (section hidden; C22, C23); chart quota (placeholder image).
+Low: CoinGecko changes Demo terms (quarterly review); Gemini demand spikes (fallback model); chart quota (placeholder image).

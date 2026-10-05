@@ -14,12 +14,9 @@ File settings: **Locale United States, Time zone (GMT-05:00) New York**. Share t
 | GEMINI_FALLBACK_MODEL | same value as `GEMINI_FALLBACK_MODEL` in .env (used by the retry, module 15) |
 | SITE_URL | https://media-and-software-manger.vercel.app |
 | OWNER_EMAIL | your Gmail address |
-| FALLBACK_SUMMARY | Today's AI summary is unavailable. The sections below come straight from our sources. |
+| FALLBACK_SUMMARY | Today's AI summary is unavailable. The sections below come straight from official and licensed sources. |
 
 Below, `cfg("KEY")` means `VLOOKUP("KEY",Config!$A:$B,2,FALSE)`.
-
-## News (owner-edited; drives the GDELT query)
-`topic | news_term` (A–B). Seed from [samples/news.csv](../samples/news.csv). One word or a quoted phrase per row.
 
 ## Subscribers (written only by the Vercel function)
 `email | status | created_at | confirmed_at | unsubscribed_at | token_nonce` (A–F). `status` ∈ pending, active, waitlist, unsubscribed. Timestamps ISO 8601 UTC. `token_nonce` 32 hex chars, rotated after every token use.
@@ -31,23 +28,22 @@ Below, `cfg("KEY")` means `VLOOKUP("KEY",Config!$A:$B,2,FALSE)`.
 `date | subscribers | batches | status | error` (A–E). `status` ∈ ok, ok_no_ai, partial, failed, skipped.
 
 ## Feed (read by Make module 1)
-Row 1 = keys (A–M), row 2 = formulas.
+Row 1 = keys (A–L), row 2 = formulas.
 
 | Col | Key | Formula (row 2) |
 |---|---|---|
 | A | send_enabled | `=IF(cfg("SEND_ENABLED")=TRUE,"TRUE","FALSE")` |
-| B | gdelt_url | `="https://api.gdeltproject.org/api/v2/doc/doc?query="&ENCODEURL("("&TEXTJOIN(" OR ",TRUE,News!B2:B40)&") (stock OR shares OR crypto) sourcelang:english")&"&mode=artlist&maxrecords=6&timespan=24h&sort=hybridrel&format=json"` |
-| C | gemini_model | `=cfg("GEMINI_MODEL")` |
-| D | fallback_json | `="{""source"":""fallback"",""summary"":"""&SUBSTITUTE(cfg("FALLBACK_SUMMARY"),"""","'")&""",""story1_id"":1,""story1_why"":"""",""story2_id"":2,""story2_why"":"""",""crypto_note"":""""}"` |
-| E | active_count | `=MIN(COUNTIF(Subscribers!B2:B,"active"),cfg("SUBSCRIBER_CAP"))` |
-| F | batch_count | `=ROUNDUP(E2/cfg("BATCH_SIZE"),0)` |
-| G | batch_1 | `=IFERROR(TEXTJOIN(",",TRUE,QUERY(FILTER(Subscribers!A2:A,Subscribers!B2:B="active"),"select Col1 limit "&MIN(cfg("BATCH_SIZE"),cfg("SUBSCRIBER_CAP")-0*cfg("BATCH_SIZE"))&" offset "&0*cfg("BATCH_SIZE"),0)),"")` |
-| H | batch_2 | as G2 with `1*` in both places |
-| I | batch_3 | as G2 with `2*` in both places |
-| J | site_url | `=cfg("SITE_URL")` |
-| K | owner_email | `=cfg("OWNER_EMAIL")` |
-| L | fallback_summary | `=cfg("FALLBACK_SUMMARY")` |
-| M | gemini_fallback_model | `=cfg("GEMINI_FALLBACK_MODEL")` |
+| B | gemini_model | `=cfg("GEMINI_MODEL")` |
+| C | fallback_json | `="{""source"":""fallback"",""summary"":"""&SUBSTITUTE(cfg("FALLBACK_SUMMARY"),"""","'")&""",""crypto_note"":""""}"` |
+| D | active_count | `=MIN(COUNTIF(Subscribers!B2:B,"active"),cfg("SUBSCRIBER_CAP"))` |
+| E | batch_count | `=ROUNDUP(D2/cfg("BATCH_SIZE"),0)` |
+| F | batch_1 | `=IFERROR(TEXTJOIN(",",TRUE,QUERY(FILTER(Subscribers!A2:A,Subscribers!B2:B="active"),"select Col1 limit "&MIN(cfg("BATCH_SIZE"),cfg("SUBSCRIBER_CAP")-0*cfg("BATCH_SIZE"))&" offset "&0*cfg("BATCH_SIZE"),0)),"")` |
+| G | batch_2 | as F2 with `1*` in both places |
+| H | batch_3 | as F2 with `2*` in both places |
+| I | site_url | `=cfg("SITE_URL")` |
+| J | owner_email | `=cfg("OWNER_EMAIL")` |
+| K | fallback_summary | `=cfg("FALLBACK_SUMMARY")` |
+| L | gemini_fallback_model | `=cfg("GEMINI_FALLBACK_MODEL")` |
 
 Three batch columns cover the 300 cap at 100 per batch; a higher cap breaks the Gmail budget (ARCHITECTURE §5).
 

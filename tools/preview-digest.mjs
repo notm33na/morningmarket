@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // MarketMorning local preview (0 Make credits). Node 18+, no dependencies.
 //
-//   node tools/preview-digest.mjs            live: GDELT + CoinGecko + Fed speeches RSS + Gemini, keys from .env
+//   node tools/preview-digest.mjs            live: BLS latest numbers + CoinGecko + Fed speeches RSS + Gemini, keys from .env
 //   node tools/preview-digest.mjs --sample   samples/ only, no network calls
-//     add --variant=no-crypto | one-headline | fed-only | ai-fallback to test the degraded paths
+//     add --variant=no-crypto | no-bls | no-fed | ai-fallback to test the degraded paths
 //   node tools/preview-digest.mjs --make-body   print the raw Gemini body to paste into Make module 4
 //
 // Renders templates/digest-email.html and prompts/gemini-user.make.txt with a small
@@ -19,10 +19,12 @@ const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 const args = new Set(process.argv.slice(2));
 const SAMPLE = args.has('--sample');
 const VARIANT = [...args].find((a) => a.startsWith('--variant='))?.split('=')[1] ?? '';
-if (VARIANT && !['no-crypto', 'one-headline', 'fed-only', 'ai-fallback'].includes(VARIANT)) throw new Error(`Unknown --variant=${VARIANT}`);
+const FROM = [...args].find((a) => a.startsWith('--from='))?.slice(7) ?? ''; // dir with bls.rss, coingecko.json, fed.xml, gemini-output.json
+if (VARIANT && !['no-crypto', 'no-bls', 'no-fed', 'ai-fallback'].includes(VARIANT)) throw new Error(`Unknown --variant=${VARIANT}`);
 
 const COINGECKO_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true';
 const FED_URL = 'https://www.federalreserve.gov/feeds/speeches.xml';
+const BLS_URL = 'https://www.bls.gov/feed/bls_latest.rss';
 const GEMINI_RETRY_MS = 10_000; // matches the Make Sleep module (14) before the fallback-model retry (15)
 
 // ---------- .env ----------
@@ -37,45 +39,15 @@ function loadEnv() {
   return env;
 }
 
-// ---------- CSV (quoted fields, "" escapes) ----------
-function parseCsv(text) {
-  const rows = [];
-  let row = [], field = '', q = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (q) {
-      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
-      else if (c === '"') q = false;
-      else field += c;
-    } else if (c === '"') q = true;
-    else if (c === ',') { row.push(field); field = ''; }
-    else if (c === '\n' || c === '\r') {
-      if (c === '\r' && text[i + 1] === '\n') i++;
-      row.push(field); field = '';
-      if (row.some((f) => f !== '')) rows.push(row);
-      row = [];
-    } else field += c;
-  }
-  if (field !== '' || row.length) { row.push(field); rows.push(row); }
-  const [head, ...body] = rows;
-  return body.map((r) => Object.fromEntries(head.map((h, i) => [h, r[i] ?? ''])));
-}
-
 // ---------- Feed row: same values the Sheet formulas produce (docs/SHEET.md) ----------
-// Sheets ENCODEURL leaves only A-Z a-z 0-9 - _ . ~ unencoded.
-const encodeUrl = (s) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());
-
 function buildFeed(env) {
   const sheetMd = read('docs/SHEET.md');
   const fallbackSummary = sheetMd.match(/^\| FALLBACK_SUMMARY \| (.+?) \|$/m)[1];
-  const terms = parseCsv(read('samples/news.csv')).map((r) => r.news_term).filter(Boolean);
-  const query = '(' + terms.join(' OR ') + ') (stock OR shares OR crypto) sourcelang:english';
   return {
     send_enabled: 'TRUE',
-    gdelt_url: 'https://api.gdeltproject.org/api/v2/doc/doc?query=' + encodeUrl(query) + '&mode=artlist&maxrecords=6&timespan=24h&sort=hybridrel&format=json',
     gemini_model: env.GEMINI_MODEL || '{{GEMINI_MODEL}}',
     gemini_fallback_model: env.GEMINI_FALLBACK_MODEL || env.GEMINI_MODEL || '{{GEMINI_FALLBACK_MODEL}}',
-    fallback_json: JSON.stringify({ source: 'fallback', summary: fallbackSummary.replace(/"/g, "'"), story1_id: 1, story1_why: '', story2_id: 2, story2_why: '', crypto_note: '' }),
+    fallback_json: JSON.stringify({ source: 'fallback', summary: fallbackSummary.replace(/"/g, "'"), crypto_note: '' }),
     active_count: 3,
     batch_count: 1,
     batch_1: '{{TEST_EMAIL+mm1}},{{TEST_EMAIL+mm2}},{{TEST_EMAIL+mm3}}',
@@ -85,6 +57,13 @@ function buildFeed(env) {
     owner_email: '{{TEST_EMAIL}}',
     fallback_summary: fallbackSummary,
   };
+}
+
+// Mirrors Make's Text parser › Match pattern (global: No, continue on no match: Yes):
+// one bundle with the named groups (cpi, unemployment, payrolls, ppi), or an empty bundle when it doesn't match.
+function matchBls(text) {
+  const m = text ? text.match(new RegExp(read('prompts/bls-pattern.make.txt').trim())) : null;
+  return m ? { ...m.groups } : {};
 }
 
 // ---------- Make expression evaluator (subset used by our templates) ----------
@@ -104,7 +83,7 @@ function tokenize(src) {
     const two = src.slice(i, i + 2);
     if (['>=', '<=', '!='].includes(two)) { out.push({ t: 'op', v: two }); i += 2; continue; }
     if ('()=<>+-;'.includes(c)) { out.push({ t: c === '(' || c === ')' || c === ';' ? c : 'op', v: c }); i++; continue; }
-    const m = src.slice(i).match(/^[A-Za-z0-9_.\[\]]+/);
+    const m = src.slice(i).match(/^[A-Za-z0-9_.$\[\]]+/);
     if (!m) throw new Error(`Unexpected "${c}" in {{${src}}}`);
     out.push({ t: 'word', v: m[0] }); i += m[0].length;
   }
@@ -198,6 +177,7 @@ const FUNCS = {
   replace: (s, a, b) => (s == null ? '' : String(s).split(a).join(b)),
   length: (x) => (Array.isArray(x) || typeof x === 'string' ? x.length : 0),
   escapeHTML: (s) => (s == null ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')),
+  toString: (v) => (v == null ? '' : String(v)),
   trim: (s) => (s == null ? '' : String(s).trim()),
   substring: (s, a, b) => (s == null ? '' : String(s).substring(num(a), b === undefined ? undefined : num(b))),
   formatNumber,
@@ -297,15 +277,21 @@ async function main() {
   const env = loadEnv();
   const feed = buildFeed(env);
   const now = new Date();
-  let gdelt, coingecko, fed, geminiResponse;
+  let blsText, coingecko, fed, geminiResponse;
 
-  if (SAMPLE) {
-    gdelt = JSON.parse(read('samples/gdelt.sample.json'));
+  if (FROM) {
+    const rd = (f) => readFileSync(join(FROM, f), 'utf8');
+    blsText = rd('bls.rss');
+    coingecko = JSON.parse(rd('coingecko.json'));
+    fed = parseRss(rd('fed.xml'));
+    geminiResponse = { candidates: [{ content: { parts: [{ text: rd('gemini-output.json') }] } }] };
+  } else if (SAMPLE) {
+    blsText = read('samples/bls-latest.sample.rss');
     coingecko = JSON.parse(read('samples/coingecko.sample.json'));
     fed = parseRss(read('samples/fed-speeches.sample.xml'));
     if (VARIANT === 'no-crypto') coingecko = undefined; // Make module 3 Resumes with empty data
-    if (VARIANT === 'one-headline') gdelt = { articles: gdelt.articles.slice(0, 1) };
-    if (VARIANT === 'fed-only') gdelt = undefined; // GDELT throttled: module 2 Resumes with empty data
+    if (VARIANT === 'no-bls') blsText = undefined; // module 2 Resumes with empty data
+    if (VARIANT === 'no-fed') fed = undefined; // modules 16-17 Resume with empty data
     if (VARIANT === 'ai-fallback') geminiResponse = undefined; // modules 4 and 15 both failed
     else {
       const out = JSON.parse(read(`samples/gemini-output${VARIANT && VARIANT !== 'ai-fallback' ? '.' + VARIANT : ''}.sample.json`));
@@ -314,20 +300,20 @@ async function main() {
   } else {
     for (const k of ['GEMINI_API_KEY', 'GEMINI_MODEL', 'COINGECKO_API_KEY']) if (!env[k]) throw new Error(`Missing ${k} in .env (or use --sample)`);
     if (!env.GEMINI_FALLBACK_MODEL) console.warn('  GEMINI_FALLBACK_MODEL is not set: the retry reuses GEMINI_MODEL here, but Make module 15 would fail (check C7).');
-    console.log('GDELT:', feed.gdelt_url);
-    gdelt = await getJson(feed.gdelt_url);
+    blsText = await getText(BLS_URL, { 'user-agent': `MarketMorning portfolio demo (${feed.site_url})` });
     coingecko = await getJson(COINGECKO_URL, { 'x-cg-demo-api-key': env.COINGECKO_API_KEY });
     fed = parseRss(await getText(FED_URL, { 'user-agent': `MarketMorning portfolio demo (${feed.site_url})` }));
     if (!fed) console.warn('  Fed speeches feed: empty or not RSS -> treated as empty');
   }
 
-  const ctx = { now, bundles: { 1: feed, 2: { data: gdelt }, 3: { data: coingecko }, 17: fed } };
+  const bls = matchBls(blsText);
+  if (!SAMPLE && isEmpty(bls.cpi)) console.warn('  BLS latest numbers: pattern did not match -> section hidden');
+  const ctx = { now, bundles: { 1: feed, 2: { data: blsText }, 3: { data: coingecko }, 17: fed, 18: bls } };
 
   // Router R1
-  const articles = gdelt?.articles ?? [];
   const fedItems = fed?.rss?.channel?.item ?? [];
-  if (feed.send_enabled !== 'TRUE' || (articles.length === 0 && isEmpty(coingecko?.bitcoin?.usd) && fedItems.length === 0)) {
-    console.log('SKIPPED (route B): no headlines, no crypto data and no Fed feed.');
+  if (feed.send_enabled !== 'TRUE' || (fedItems.length === 0 && isEmpty(coingecko?.bitcoin?.usd) && isEmpty(bls.cpi))) {
+    console.log('SKIPPED (route B): no Fed feed, no crypto data and no BLS data.');
     return;
   }
 
@@ -335,25 +321,25 @@ async function main() {
   const bodyText = render(makeBody(), ctx);
   let bodyJson;
   try { bodyJson = JSON.parse(bodyText); } catch (e) { throw new Error(`Rendered Gemini body is not valid JSON (check C6): ${e.message}`); }
-  if (!SAMPLE) geminiResponse = await callGemini(env, bodyText);
+  if (!SAMPLE && !FROM) geminiResponse = await callGemini(env, bodyText);
   ctx.bundles[4] = { data: geminiResponse };
 
   // Module 5: Parse JSON with fallback
   const text = evaluate(parse(tokenize('ifempty(4.data.candidates[1].content.parts[1].text; 1.fallback_json)')), ctx);
   let digest;
-  try { digest = JSON.parse(text); } catch { digest = { source: 'fallback', summary: feed.fallback_summary, story1_id: 1, story1_why: '', story2_id: 2, story2_why: '', crypto_note: '' }; }
+  try { digest = JSON.parse(text); } catch { digest = { source: 'fallback', summary: feed.fallback_summary, crypto_note: '' }; }
   ctx.bundles[5] = digest;
 
   const html = render(read('templates/digest-email.html'), ctx);
   const date = formatDate(now, 'YYYY-MM-DD', 'America/New_York');
-  const base = join(ROOT, 'tests', 'previews', SAMPLE ? `${date}.sample${VARIANT ? '-' + VARIANT : ''}` : date);
+  const base = join(ROOT, 'tests', 'previews', FROM ? `${date}.from-make` : SAMPLE ? `${date}.sample${VARIANT ? '-' + VARIANT : ''}` : date);
   mkdirSync(dirname(base), { recursive: true });
   writeFileSync(base + '.html', html);
   writeFileSync(base + '.input.json', JSON.stringify({
-    mode: SAMPLE ? `sample${VARIANT ? ':' + VARIANT : ''}` : 'live',
+    mode: FROM ? 'from-make' : SAMPLE ? `sample${VARIANT ? ':' + VARIANT : ''}` : 'live',
     generated_at: now.toISOString(),
     feed: { ...feed, batch_1: '(redacted)' },
-    gdelt,
+    bls_values: bls,
     coingecko,
     fed_speeches: fedItems,
     gemini_user_text: bodyJson.contents[0].parts[0].text,

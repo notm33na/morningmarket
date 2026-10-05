@@ -1,0 +1,1 @@
+Consumer Price Index \(CPI\):[\s\S]*?class="data">(?<cpi>[^<]+)<[\s\S]*?Unemployment Rate:[\s\S]*?class="data">(?<unemployment>[^<]+)<[\s\S]*?Payroll Employment:[\s\S]*?class="data">(?<payrolls>[^<]+)<[\s\S]*?Producer Price Index - Final Demand:[\s\S]*?class="data">(?<ppi>[^<]+)<

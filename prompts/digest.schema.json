@@ -2,12 +2,8 @@
   "type": "object",
   "properties": {
     "summary": { "type": "string", "description": "Exactly 3 sentences." },
-    "story1_id": { "type": "integer", "minimum": 1, "maximum": 6 },
-    "story1_why": { "type": "string", "description": "1 sentence." },
-    "story2_id": { "type": "integer", "minimum": 1, "maximum": 6 },
-    "story2_why": { "type": "string", "description": "1 sentence." },
-    "crypto_note": { "type": "string", "description": "1 sentence." }
+    "crypto_note": { "type": "string", "description": "1 sentence, or empty if CRYPTO is blank." }
   },
-  "required": ["summary", "story1_id", "story1_why", "story2_id", "story2_why", "crypto_note"],
+  "required": ["summary", "crypto_note"],
   "additionalProperties": false
 }

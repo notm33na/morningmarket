@@ -1,6 +1,6 @@
 # MarketMorning architecture
 
-Portfolio demo, not financial advice. Sheet: [SHEET.md](SHEET.md). Data licensing: [DATA-SOURCES.md](DATA-SOURCES.md). Build steps and checks: [BUILD-ORDER.md](BUILD-ORDER.md).
+Portfolio demo, not financial advice. Sheet: [SHEET.md](SHEET.md). Data licensing: [DATA-SOURCES.md](DATA-SOURCES.md). Build steps: [BUILD-ORDER.md](BUILD-ORDER.md), [MAIA-PROMPTS.md](MAIA-PROMPTS.md).
 
 ## 1. System
 ```mermaid
@@ -10,20 +10,20 @@ flowchart LR
   F -->|Sheets API, service account| G[(Google Sheet)]
   F -->|Gmail SMTP| E1[Confirm / unsubscribe emails]
   M[Make scenario<br/>Mon–Fri 08:00 America/New_York] -->|read Feed, write SendLog| G
-  M --> GD[GDELT DOC API: headlines]
-  M --> CG[CoinGecko Demo API: crypto]
+  M --> BL[BLS latest numbers RSS]
   M --> FR[Federal Reserve speeches RSS]
+  M --> CG[CoinGecko Demo API]
   M --> GM[Gemini API]
   M -->|Gmail module, BCC ×100| R[Subscribers]
   M --> SL[Slack #marketmorning-alerts]
   R -->|chart img| C[/api/mm/chart, CDN-cached/] --> QC[QuickChart]
 ```
-No stock prices anywhere: no free stock source licenses display to third parties (DATA-SOURCES.md). Signups never touch Make. Gemini and Slack never receive subscriber data; Make reads only the BCC lists.
+A **Fed, US data and crypto** brief. There are no stock prices or market headlines: no free source licenses showing them, and GDELT was unreachable from every network tested (DATA-SOURCES.md). Signups never touch Make. Gemini and Slack never receive subscriber data; Make reads only the BCC lists.
 
 ## 2. Make scenario (one scenario)
 ```mermaid
 flowchart LR
-  M1[1 Sheets: Feed] --> M2[2 GDELT] --> M3[3 CoinGecko] --> M16[16 Fed RSS] --> M17[17 Parse XML] --> R1{R1}
+  M1[1 Sheets: Feed] --> M2[2 BLS RSS] --> M3[3 CoinGecko] --> M16[16 Fed RSS] --> M17[17 Parse XML] --> M18[18 Match BLS] --> R1{R1}
   R1 -->|content ok| M4[4 Gemini] --> M5[5 Parse JSON] --> R2{R2}
   R2 -->|batches ≥1| M6[6 Gmail]
   R2 -->|≥2| M7[7 Gmail]
@@ -32,70 +32,115 @@ flowchart LR
   R1 -->|fallback route| M11[11 SendLog skipped] --> M12[12 Slack alert]
   M1 -.error.-> M13[13 Slack alert]
   M4 -.error.-> S1[14 Sleep 10s] --> M4r[15 fallback model] -.-> RES[Resume]
-  MCJ[Create JSON, only if C6 fails] -.-> M4
 ```
-Schedule: **Weekdays (Mon–Fri), 08:00**, organization time zone **America/New_York** (DST-aware; runs on market holidays too). **Creation order fixes the IDs** (routers and directives take IDs too): Phase A creates only modules 1–12 as a plain chain, then **13** = Slack alert on module 1's error route, **14** = Tools › Sleep, **15** = Gemini with the fallback model, **16** = HTTP Fed RSS and **17** = XML › Parse XML (inserted on the link 3 → 4). Phase B adds routers R1/R2, all directives and filters, and rewires; they take IDs ≥ 18, which nothing maps. JSON › Create JSON (only if check C6 fails) takes the next free ID, mapped into module 4's body by that ID. Step-by-step: [MAIA-PROMPTS.md](MAIA-PROMPTS.md). Scenario settings: **Data is confidential: on**, max cycles 1, sequential processing off, storing incomplete executions off. HTTP modules 2, 3, 4, 15, 16: **Evaluate all states as errors: Yes**. Written out inline (Make has no free named variables): `ARTS` = `ifempty(2.data.articles; emptyarray)`, `FED` = `ifempty(17.rss.channel.item; emptyarray)`.
+**Schedule:** Weekdays (Mon–Fri), 08:00, organization time zone America/New_York (DST-aware; runs on market holidays too).
+
+**Creation order fixes the IDs** (routers and directives take IDs too):
+- **Phase A** creates only modules 1–12 as a plain chain, then:
+  - **13** = Slack alert on module 1's error route;
+  - **14** = Tools › Sleep;
+  - **15** = Gemini with the fallback model;
+  - **16** = HTTP Fed RSS and **17** = XML › Parse XML, inserted on the link 3 → 4;
+  - **18** = Text parser › Match pattern (BLS), inserted on the link 17 → 4.
+- **Phase B** adds routers R1/R2, all directives and filters, and rewires. They take IDs ≥ 19, which nothing maps.
+- JSON › Create JSON (only if check C6 fails) takes the next free ID.
+
+**Scenario settings:** Data is confidential: on; max cycles 1; sequential processing off; storing incomplete executions off. HTTP modules 2, 3, 4, 15, 16: Evaluate all states as errors: Yes. `FED` = `ifempty(17.rss.channel.item; emptyarray)`, written out inline.
 
 | ID | Module | Key settings and mappings | Error handler | Credits |
 |---|---|---|---|---|
-| 1 | Google Sheets › Get range values | `Feed!A1:M2`, table contains headers: Yes | 13 Slack "MarketMorning FAILED: Sheet read: {{error.message}}" → **Ignore** (no SendLog: Sheet down) | 1 (+1) |
-| 2 | HTTP › Make a request | GET `{{1.gdelt_url}}`, parse response: Yes, timeout 20 s | **Resume**, `data` empty | 1 |
+| 1 | Google Sheets › Get range values | `Feed!A1:L2`, table contains headers: Yes | 13 Slack "MarketMorning FAILED: Sheet read: {{error.message}}" → **Ignore** (13 also gets its own Ignore handler) | 1 (+1) |
+| 2 | HTTP › Make a request | GET `https://www.bls.gov/feed/bls_latest.rss`; header `User-Agent: MarketMorning portfolio demo ({{1.site_url}})`; parse: No; timeout 20 s | **Resume**, `data` empty | 1 |
 | 3 | HTTP › Make a request | GET `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true`; keychain "CoinGecko" (header `x-cg-demo-api-key`); parse: Yes; timeout 20 s | **Resume**, `data` empty | 1 |
 | 16 | HTTP › Make a request | GET `https://www.federalreserve.gov/feeds/speeches.xml`; header `User-Agent: MarketMorning portfolio demo ({{1.site_url}})`; parse: No; timeout 20 s | **Resume**, `data` empty | 1 |
-| 17 | XML › Parse XML | XML `{{16.data}}`; data structure generated from a saved copy of the feed | **Resume**, empty | 1 |
-| R1 | Router | Route A filter "Content OK" (one AND group): `1.send_enabled` Text = `TRUE` **and** `{{length(ARTS) + length(FED) + if(3.data.bitcoin.usd; 1; 0)}}` Numeric > `0`. Route B = fallback route "Skip" | – | 0 |
-| 4 | HTTP › Make a request | POST `https://generativelanguage.googleapis.com/v1beta/models/{{1.gemini_model}}:generateContent`; keychain "Gemini" (header `x-goog-api-key`); raw body = `prompts/gemini-body.make.txt` (generated, §3.2); parse: Yes; timeout 60 s | 14 Sleep 10 s → **15** (clone of 4 with `{{1.gemini_fallback_model}}` in the URL, timeout 40 s) → **Resume** with `data` = `{{15.data}}`; 15's handler: **Resume**, `data` empty | 1 (+2) |
-| 5 | JSON › Parse JSON | `{{ifempty(4.data.candidates[1].content.parts[1].text; 1.fallback_json)}}`; data structure = schema keys + `source` | **Resume**: `source`=fallback, `summary`=`{{1.fallback_summary}}`, `story1_id`=1, `story2_id`=2, others empty | 1 |
+| 17 | XML › Parse XML | XML `{{16.data}}` (`{{toString(16.data)}}` if it arrives as binary, C23); data structure generated from `samples/fed-speeches.sample.xml` | **Resume**, empty | 1 |
+| 18 | Text parser › Match pattern | Pattern = `prompts/bls-pattern.make.txt`; text `{{2.data}}` (`{{toString(2.data)}}` if binary, C25); global match: No; case sensitive: Yes; **continue the execution of the route even if the module finds no matches: Yes**. Named groups → outputs `cpi`, `unemployment`, `payrolls`, `ppi` (value + month) | Resume | 1 |
+| R1 | Router | Route A "Content OK" (one AND group): `1.send_enabled` Text = `TRUE` **and** `{{length(FED) + if(3.data.bitcoin.usd; 1; 0) + if(18.cpi; 1; 0)}}` Numeric > `0`. Route B = fallback route "Skip" | – | 0 |
+| 4 | HTTP › Make a request | POST `https://generativelanguage.googleapis.com/v1beta/models/{{1.gemini_model}}:generateContent`; keychain "Gemini" (header `x-goog-api-key`); raw body = `prompts/gemini-body.make.txt` (generated, §3.2); parse: Yes; timeout 60 s | 14 Sleep 10 s → **15** (clone of 4 with `{{1.gemini_fallback_model}}`, timeout 40 s) → **Resume** with `data` = `{{15.data}}`; 15's handler: **Resume**, `data` empty | 1 (+2) |
+| 5 | JSON › Parse JSON | `{{ifempty(4.data.candidates[1].content.parts[1].text; 1.fallback_json)}}`; data structure `source`, `summary`, `crypto_note` | **Resume**: `source`=fallback, `summary`=`{{1.fallback_summary}}`, `crypto_note` empty | 1 |
 | R2 | Router | →6 filter `1.batch_count` ≥ 1 (numeric); →7 ≥ 2; →8 ≥ 3; →9 no filter (last) | – | 0 |
-| 6–8 | Gmail › Send an email | To `{{1.owner_email}}`; BCC `{{split(1.batch_n; ",")}}`; Subject `MarketMorning · {{formatDate(now; "ddd, MMM D"; "America/New_York")}}: markets, crypto and the stories that matter`; Raw HTML = [templates/digest-email.html](../templates/digest-email.html); header `List-Unsubscribe: <{{1.site_url}}/unsubscribe>` | **Resume**, message ID empty | 1 each |
-| 9 | Sheets › Add a row | SendLog: `{{formatDate(now; "YYYY-MM-DD"; "America/New_York")}}`, `{{1.active_count}}`, `SENT`, `STATUS`, `ERR` | Resume | 1 |
+| 6–8 | Gmail › Send an email | To `{{1.owner_email}}`; BCC (map) `{{split(1.batch_n; ",")}}`; Subject `MarketMorning · {{formatDate(now; "ddd, MMM D"; "America/New_York")}}: the Fed, US data and crypto`; Raw HTML = [templates/digest-email.html](../templates/digest-email.html); header `List-Unsubscribe: <{{1.site_url}}/unsubscribe>` | **Resume** | 1 each |
+| 9 | Sheets › Add a row | SendLog: date, `{{1.active_count}}`, `SENT`, `STATUS`, `ERR` (full strings in MAIA-PROMPTS Step 4) | Resume | 1 |
 | 10 | Slack › Create a message | `MarketMorning STATUS: attempted {{1.active_count}} subscribers, SENT/{{1.batch_count}} batches delivered. ERR` | Ignore | 1 |
 | 11 | Sheets › Add a row | SendLog: date, `{{1.active_count}}`, 0, `skipped`, `send disabled or no content` | Resume | 1 |
-| 12 | Slack › Create a message | `MarketMorning SKIPPED: SEND_ENABLED off, or GDELT, CoinGecko and the Fed feed all empty.` | Ignore | 1 |
+| 12 | Slack › Create a message | `MarketMorning SKIPPED: SEND_ENABLED off, or the Fed feed, BLS and CoinGecko all empty.` | Ignore | 1 |
 
 Inline expressions (Gmail "message ID" output shown as `6.id`):
-- `SENT` = `{{if(6.id; 1; 0) + if(7.id; 1; 0) + if(8.id; 1; 0)}}`
-- `STATUS` = `{{if(1.batch_count = 0; "ok"; if(SENT = 0; "failed"; if(SENT < 1.batch_count; "partial"; if(5.source = "fallback"; "ok_no_ai"; "ok"))))}}`
-- `ERR` = `{{if(5.source = "fallback"; "AI fallback. "; "")}}{{if(length(ARTS) = 0; "No headlines. "; "")}}{{if(3.data.bitcoin.usd; ""; "No crypto data. ")}}{{if(length(FED) = 0; "No Fed feed. "; "")}}{{if(SENT < 1.batch_count; "Batch failures. "; "")}}`
+- `SENT` = `if(6.id; 1; 0) + if(7.id; 1; 0) + if(8.id; 1; 0)`
+- `STATUS` = `if(1.batch_count = 0; "ok"; if(SENT = 0; "failed"; if(SENT < 1.batch_count; "partial"; if(5.source = "fallback"; "ok_no_ai"; "ok"))))`
+- `ERR` = "AI fallback. " / "No BLS data. " (`18.cpi` empty) / "No crypto data. " / "No Fed feed. " / "Batch failures. ", as applicable (full strings in MAIA-PROMPTS Step 4; module 10 uses the same ERR).
 
 ## 3. Data contracts
 ### 3.1 Sheet tabs (formulas in SHEET.md)
 | Tab | Columns | Writer |
 |---|---|---|
 | Config | key, value: SEND_ENABLED, SUBSCRIBER_CAP=300, BATCH_SIZE=100, TX_CONFIRM_CAP=70, TX_UNSUB_CAP=30, GEMINI_MODEL, GEMINI_FALLBACK_MODEL, SITE_URL, OWNER_EMAIL, FALLBACK_SUMMARY | Owner |
-| News | topic, news_term | Owner |
 | Subscribers | email, status, created_at, confirmed_at, unsubscribed_at, token_nonce | Vercel |
 | TxLog | sent_at, type, email_hash | Vercel |
 | SendLog | date, subscribers, batches, status, error | Make |
-| Feed | 13 computed keys (A–M) | Formulas |
+| Feed | 12 computed keys (A–L) | Formulas |
 | Dashboard | counts, tables, 3 charts | Formulas |
 
-### 3.2 Gemini request (no subscriber data, no stock numbers)
-The raw body is **generated** by `node tools/preview-digest.mjs --make-body` from `prompts/digest.system.md` + `prompts/gemini-user.make.txt` + `prompts/digest.schema.json`, so Make and the local preview send identical requests: `{"systemInstruction":{…},"contents":[{"role":"user","parts":[{"text":"<user template>"}]}],"generationConfig":{"responseMimeType":"application/json","responseJsonSchema":{…}}}`. The user template lists the 6 coins (`symbol | price USD | 24h change %`, as-of from `last_updated_at`), six fixed lines `1)`…`6)` with GDELT titles, and up to three dated Fed speech lines (`\`→`/`, `"`→`'` so the body stays valid JSON; missing items render as empty lines).
-**Output:** `{"summary":"3 sentences","story1_id":1-6,"story1_why":"…","story2_id":1-6,"story2_why":"…","crypto_note":"…"}`. Stories are GDELT items looked up by id, so Gemini never writes a URL. Feed `fallback_json` has the same keys plus `"source":"fallback"`.
+### 3.2 Gemini request (no subscriber data)
+The raw body is **generated** by `node tools/preview-digest.mjs --make-body` from `prompts/digest.system.md` + `prompts/gemini-user.make.txt` + `prompts/digest.schema.json`. Make and the local preview therefore send identical requests. The user template has three sections:
+- **FED SPEECHES:** up to 3 dated lines.
+- **LATEST US DATA:** 4 BLS lines (label | value with month).
+- **CRYPTO:** 6 coins, with the as-of time.
+
+Missing items render as empty lines. `\` becomes `/` and `"` becomes `'`, so the body stays valid JSON.
+
+**Output:** `{"summary":"3 sentences: Fed, data, crypto","crypto_note":"…"}`. Feed `fallback_json` has the same keys plus `"source":"fallback"`.
 
 ### 3.3 Email sections
-Summary · Stories that matter (GDELT; hidden without articles) · Crypto (CoinGecko; table, chart and credit hidden without data) · Headlines (GDELT) · **From the Federal Reserve** (latest 3 speeches with dates and links, "Source: Federal Reserve Board" linked to federalreserve.gov, "not affiliated" note; shown when the feed loads) · footer. The subtitle "news from the last 24 hours", the footer line "Summary written by AI…" and each source credit appear only when true.
+- Summary.
+- **Latest US economic data:** CPI, unemployment rate, payroll jobs and PPI, each "value in month" verbatim, with a "Source: U.S. Bureau of Labor Statistics" link.
+- **From the Federal Reserve:** latest 3 speeches with dates and links, "Source: Federal Reserve Board", and a not-affiliated note.
+- **Crypto:** table, chart and "Powered by CoinGecko".
+- Footer.
+
+Each section, its footer credit and the "Summary written by AI…" line appear only when true.
 
 ## 4. Site and Vercel functions
-Spec in [SITE.md](SITE.md): `POST /api/mm/subscribe`, `GET|POST /api/mm/confirm`, `GET /unsubscribe`, `POST /api/mm/unsubscribe`, `GET|POST /api/mm/unsubscribe/confirm`, `GET /api/mm/chart`. HMAC-signed, expiring, single-use tokens; state changes only on POST; honeypot, MX check, WAF rate limit and rolling email budgets; writes to the Sheet via a service account. The chart proxy renders QuickChart once per CDN region and serves a placeholder for anything invalid.
+Spec in [SITE.md](SITE.md):
+- `POST /api/mm/subscribe`
+- `GET|POST /api/mm/confirm`
+- `GET /unsubscribe`, `POST /api/mm/unsubscribe`
+- `GET|POST /api/mm/unsubscribe/confirm`
+- `GET /api/mm/chart`
+
+Tokens are HMAC-signed, expiring and single-use, and state changes only on POST. Abuse controls: honeypot, MX check, WAF rate limit and rolling email budgets. The functions write to the Sheet via a service account. The chart proxy renders QuickChart once per CDN region and serves a placeholder for anything invalid.
 
 ## 5. Budgets
-**Credits/run:** normal 1 + 1 + 1 + 2 (Fed 16–17) + 1 + 1 + 3 + 1 + 1 = **12**; worst = 12 + Gemini retry (14, 15) 2 + Create JSON (next free ID, check C6) 1 = **15**; skipped 7; Sheet failure 2. **Month (max 23 weekdays):** worst 15 × 23 = **345 ≤ 400**; typical 12 × 22 = 264. No GDELT retry: the Fed section keeps the email useful when GDELT fails. **Testing:** ≤ 150 credits (plan in MAIA-PROMPTS Step 8); go live in the month after testing so live + test ≤ 400. Gmail, not credits, limits the subscriber count. **Runtime** worst case ≈ 20 × 3 (2, 3, 16) + 60 (4) + 10 (14) + 40 (15) + ~30 (Gmail, Sheets, Slack) ≈ 3.3 min, under Make Free's 5-min limit (check C15).
+**Credits per run:**
+- Normal: 1 + 1 (BLS) + 1 + 2 (Fed 16–17) + 1 (18) + 1 + 1 + 3 + 1 + 1 = **13**.
+- Worst: 13 + Gemini retry (14, 15) 2 + Create JSON (next free ID, check C6) 1 = **16**.
+- Skipped run: 8. Sheet failure: 2.
 
-**Gmail** (personal: 500 recipients/message, 500 per rolling 24 h; every recipient counted): digest = N + ⌈N/100⌉ owner copies; N = 300 → 303. Transactional ≤ 100 per rolling 24 h. Peak 403, ~95 left for the owner. Hence **SUBSCRIBER_CAP 300, BATCH_SIZE 100**.
+**Per month (max 23 weekdays):** worst 16 × 23 = **368 ≤ 400**; typical 13 × 22 = 286.
 
-**CoinGecko Demo** (10,000 calls/month): ~23 calls + tests. **Fed RSS:** 1 request/run. **QuickChart** (free ≈ 60/min, 1,000/month): the proxy URL is unique per day and immutable, so renders ≈ CDN misses (≤ ~20 regions/day ≈ 460/month).
+**Testing:** ≤ 150 credits (plan in MAIA-PROMPTS Step 8). Go live in the month after testing, so live + test stays ≤ 400.
+
+Gmail, not credits, limits the subscriber count. **Runtime** worst case ≈ 20 × 3 (2, 3, 16) + 60 (4) + 10 (14) + 40 (15) + ~30 ≈ 3.3 min, under Make Free's 5-min limit (check C15).
+
+**Gmail** (personal: 500 recipients/message, 500 per rolling 24 h; every recipient counted):
+- Digest = N + ⌈N/100⌉ owner copies; N = 300 gives 303.
+- Transactional ≤ 100 per rolling 24 h. Peak 403, leaving ~95 for the owner.
+- Hence **SUBSCRIBER_CAP 300, BATCH_SIZE 100**.
+
+**Other services:**
+- **CoinGecko Demo** (10,000 calls/month): ~23 calls plus tests.
+- **BLS, Fed:** 1 request each per run.
+- **QuickChart** (free ≈ 60/min, 1,000/month): the proxy URL is unique per day and immutable, so renders ≈ CDN misses, about 460/month.
 
 ## 6. Error handling
 | Call | Failure | Behaviour |
 |---|---|---|
 | Sheets read (1) | API error | Slack alert; no send, no SendLog (documented exception to FR13). |
-| GDELT (2) | error, 429, non-JSON, 0 results | Empty `ARTS` → stories hidden, "Headlines unavailable today."; summary built from Fed speeches and crypto (prompt rule 6). |
+| BLS (2) / Match (18) | error, block page, markup change | `18.cpi` empty → data section and credit hidden; summary covers the Fed and crypto. |
 | CoinGecko (3) | error / 429 | "Crypto prices unavailable today."; table, chart and credit hidden; `crypto_note` empty. |
-| Fed RSS (16) / Parse XML (17) | error, non-XML | Empty `FED` → Fed section hidden; everything else unchanged. |
-| All of 2, 3, 16 empty, or SEND_ENABLED off | – | Route B: SendLog `skipped` + Slack. |
-| Gemini (4) | 429/503/timeout/4xx | Sleep 10 s (14), retry once with `GEMINI_FALLBACK_MODEL` (15); then empty → module 5 uses `fallback_json`, status `ok_no_ai`, footer says the summary was not written by AI. If Make can't attach a handler to 15 (C14b), 15 runs with "Evaluate all states as errors: No" so API errors still fall back; only a timeout of 15 would end the run. |
+| Fed RSS (16) / Parse XML (17) | error, non-XML | Empty `FED` → Fed section hidden. |
+| BLS, CoinGecko and Fed all empty, or SEND_ENABLED off | – | Route B: SendLog `skipped` + Slack. |
+| Gemini (4) | 429/503/timeout/4xx | Sleep 10 s (14), then retry once with `GEMINI_FALLBACK_MODEL` (15). If that fails too, module 5 uses `fallback_json`: status `ok_no_ai`, and the footer says the summary was not written by AI. If Make can't attach a handler to 15 (C14b), 15 runs with "Evaluate all states as errors: No". |
 | Gemini output (5) | bad/truncated JSON | Resume with fallback fields. |
 | Gmail (6–8) | any error | Resume; other routes still run; `partial`/`failed`; Slack shows it. |
 | SendLog/Slack | error | Resume/Ignore. |
@@ -106,19 +151,20 @@ Spec in [SITE.md](SITE.md): `POST /api/mm/subscribe`, `GET|POST /api/mm/confirm`
 | Decision | Source | Status |
 |---|---|---|
 | No stock prices: no free stock API licenses third-party display | [DATA-SOURCES.md](DATA-SOURCES.md) | Decided |
+| No market headlines: no free news API licenses display; GDELT unreachable from Make, Google and local networks (2026-10-05) | [DATA-SOURCES.md](DATA-SOURCES.md) | Decided (owner: "Fed, no paid APIs") |
+| Official data from BLS "latest numbers" RSS (public domain, cite BLS) | [24], [26] | Decided (C24) |
+| Fed speeches RSS (public domain, cite the Board, no seal) | [25], [27] | Decided (C22, C23) |
 | Crypto from CoinGecko Demo API with "Powered by CoinGecko" + logo + link | [1], [2], [3] | Decided |
-| Headlines from GDELT DOC 2.0 (commercial use OK with citation + link); Google News RSS rejected | [4], [5], [6] | Decided (C12) |
-| Fixed "From the Federal Reserve" section from the speeches RSS (public domain, cite the Board); also the summary's fallback material | [24], [25] | Decided (C22) |
-| No free commercial news API qualifies (dev/test-only free plans or unverifiable terms) | [DATA-SOURCES.md](DATA-SOURCES.md) | Decided |
+| BEA not used: +2 credits would exceed 400/month worst case | – | Decided |
 | Org time zone America/New_York; schedule Weekdays 08:00 | [7], [8] | Decided |
 | Make Free: 2 active scenarios, 1,000 credits, 5-min max run | [9] | Decided |
 | Routers and error-handler activation free; no iterators/aggregators | [10] | Decided |
-| Models = `GEMINI_MODEL` + `GEMINI_FALLBACK_MODEL` (stable free-tier Flash / Flash-Lite); `generateContent` + `responseMimeType` + `responseJsonSchema` | [11], [12] | Decided (C6, C7) |
+| Models = `GEMINI_MODEL` + `GEMINI_FALLBACK_MODEL`; `generateContent` + `responseMimeType` + `responseJsonSchema` | [11], [12] | Decided (C6, C7) |
 | Free-tier prompts may be used by Google → only public data sent | [13] | Decided |
 | Gmail 500/day, 500/message → cap 300, batch 100 | [14] | Decided |
 | Make Gmail: BCC + additional headers → `List-Unsubscribe` (URL only) | [15] | Decided (C8) |
-| Make Gmail and Sheets via Make's built-in Google sign-in; personal Gmail reauth every 6 months | [16] | Decided |
-| Vercel → Sheets via service account (GCP project + Sheets API; no OAuth consent screen) | [17] | Decided |
+| Make Gmail and Sheets via Make's built-in Google sign-in; reauth every 6 months | [16] | Decided |
+| Vercel → Sheets via service account (no OAuth consent screen) | [17] | Decided |
 | Transactional mail: nodemailer, smtp.gmail.com:465, app password | [18] | Decided (C10) |
 | Chart via immutable, CDN-cached proxy | [19], [20], [21] | Decided (C16) |
 | Confirm/unsubscribe change state only on POST | owner choice (prevents link-scanner prefetch) | Decided |
@@ -126,4 +172,4 @@ Spec in [SITE.md](SITE.md): `POST /api/mm/subscribe`, `GET|POST /api/mm/confirm`
 | API keys in Make API-key keychains, not in the blueprint | [23] | Decided |
 | New Slack channel #marketmorning-alerts | owner choice | Decided |
 
-[1] coingecko.com/en/api_terms · [2] coingecko.com/en/api/pricing · [3] brand.coingecko.com/resources/attribution-guide · [4] gdeltproject.org/about.html · [5] blog.gdeltproject.org/gdelt-doc-2-0-api-debuts · [6] google.com/intl/en_us/terms_google_news.html · [7] help.make.com/manage-time-zones · [8] help.make.com/schedule-a-scenario · [9] make.com/en/pricing · [10] help.make.com/how-features-use-credits · [11] ai.google.dev/gemini-api/docs/models · [12] ai.google.dev/api/generate-content · [13] ai.google.dev/gemini-api/docs/pricing · [14] support.google.com/mail/answer/22839 · [15] apps.make.com/gmail-modules · [16] apps.make.com/google-email · [17] developers.google.com/workspace/guides/create-credentials#service-account · [18] support.google.com/mail/answer/185833 · [19] quickchart.io/pricing · [20] community.quickchart.io/t/rate-limits-for-quickchart-free-plan/722 · [21] vercel.com/docs/caching/cdn-cache · [22] vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting · [23] apps.make.com/api-key-authentication-type · [24] federalreserve.gov/feeds/feeds.htm · [25] federalreserve.gov/disclaimer.htm
+Refs [4]–[6] and checks C3–C5, C12 were retired with the headline design. [1] coingecko.com/en/api_terms · [2] coingecko.com/en/api/pricing · [3] brand.coingecko.com/resources/attribution-guide · [7] help.make.com/manage-time-zones · [8] help.make.com/schedule-a-scenario · [9] make.com/en/pricing · [10] help.make.com/how-features-use-credits · [11] ai.google.dev/gemini-api/docs/models · [12] ai.google.dev/api/generate-content · [13] ai.google.dev/gemini-api/docs/pricing · [14] support.google.com/mail/answer/22839 · [15] apps.make.com/gmail-modules · [16] apps.make.com/google-email · [17] developers.google.com/workspace/guides/create-credentials#service-account · [18] support.google.com/mail/answer/185833 · [19] quickchart.io/pricing · [20] community.quickchart.io/t/rate-limits-for-quickchart-free-plan/722 · [21] vercel.com/docs/caching/cdn-cache · [22] vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting · [23] apps.make.com/api-key-authentication-type · [24] bls.gov/feed/ · [25] federalreserve.gov/feeds/feeds.htm · [26] bls.gov/opub/copyright-information.htm · [27] federalreserve.gov/disclaimer.htm

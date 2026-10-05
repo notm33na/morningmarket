@@ -14,14 +14,14 @@
 | **CoinGecko Demo API** | Crypto | [coingecko.com/en/api_terms](https://www.coingecko.com/en/api_terms), [pricing](https://www.coingecko.com/en/api/pricing) | **Yes, with attribution**: the Demo plan's licence column reads "Attribution required" (paid plans: "Commercial"). Terms §4.4 require attribution when data is shown. The ban in §4.1.6 covers re-distributing or syndicating *access to the API*, not showing data in your product. | "Powered by CoinGecko" (≥ 10 pt) next to the data, linked, with the logo from the Brand Kit ([guide](https://brand.coingecko.com/resources/attribution-guide)) | 10,000 calls/month, 100/min, data refreshed ~60 s | 24 h % change (`usd_24h_change`); no "previous close" (crypto trades 24/7) |
 
 ## Decision
-- **Stocks: no free source qualifies.** The email shows **no stock prices, % changes or index levels**. Stock coverage comes from GDELT headlines plus Gemini's narrative, and the prompt forbids stock numbers.
+- **Stocks: no free source qualifies.** The email shows **no stock prices, % changes or index levels**. The prompt forbids any stock-market content.
 - **Crypto: CoinGecko Demo API**, one `/simple/price` call per run (~23/month of 10,000). We show price and 24 h % change for BTC, ETH, SOL, XRP, BNB and DOGE, with "Powered by CoinGecko" (14 px ≈ 10.5 pt) and the logo beside the table, plus a text credit in the footer. The use is non-commercial (free, no ads); anything commercial needs a paid CoinGecko plan.
-- **Headlines: GDELT** (unlimited use with citation and a link to gdeltproject.org), unchanged.
+- **Headlines:** see below (no headline source in the final design).
 - **GOOGLEFINANCE is removed from the design**, so it is no longer in the risk register.
 
 # Headline sources (decided 2026-10-05)
 
-**Why this was revisited:** live previews on 2026-10-05 got HTTP 429 ("Please limit requests to one every 5 seconds") and connection timeouts from GDELT at a few requests per hour, and one response with zero articles. GDELT's own documentation only says its APIs "are rate limited to protect the underlying ElasticSearch clusters" ([blog](https://blog.gdeltproject.org/ukraine-api-rate-limiting-web-ngrams-3-0/)); it does not document per-IP throttling. Make's shared outbound IPs are used by many customers, so the same throttling is likely there (check C12).
+**Why this was revisited:** live previews on 2026-10-05 got HTTP 429 ("Please limit requests to one every 5 seconds") and connection timeouts from GDELT at a few requests per hour, and one response with zero articles. GDELT's own documentation only says its APIs "are rate limited to protect the underlying ElasticSearch clusters" ([blog](https://blog.gdeltproject.org/ukraine-api-rate-limiting-web-ngrams-3-0/)); it does not document per-IP throttling. Make's shared outbound IPs are used by many customers, so the same throttling is likely there (confirmed in the reliability test below).
 
 ## Commercial news APIs
 | Source | Terms | Free-tier display to subscribers? | Notes |
@@ -46,8 +46,19 @@ Measured live on 2026-10-05; "weekdays with items" = distinct weekdays with a ne
 
 **Relevance, honestly:** government releases cannot replace market news. On most days nothing new appears in the last 24 hours, and the useful feeds (FOMC, CPI, jobs, GDP) publish a few days a month. The Fed speeches feed is the exception worth carrying daily: it always has recent, dated, policy-relevant items, and Fed speeches are a standing market topic.
 
-## Decision
-- **GDELT stays primary** for stories and headlines (no retry; no extra credits).
-- **Add a fixed "From the Federal Reserve" section:** the latest 3 Fed speeches with their dates, linked from the feed, "Source: Federal Reserve Board". It is fetched every run (HTTP + Parse XML = 2 credits), so on GDELT-failure days the email still has dated, licensed, relevant news, and Gemini writes the summary from it.
-- Gemini may mention a speech only by speaker, topic and date as given in its title, never as a cause of a market move.
-- Not used: SEC, BLS, BEA and Treasury (low daily relevance or extra credits for rare items). BLS and BEA are the next candidates if a "data release day" section is ever added.
+## GDELT reliability test (2026-10-05)
+| From | Result |
+|---|---|
+| Owner's PC (curl, Node, ~10 tries over hours) | 429s, 16 s responses, connection timeouts, one empty `{}` |
+| Make (3 tries, Run this module only) | 429 every time |
+| Google Apps Script (UrlFetchApp) | 429, then 200 with `{}` (0 articles) |
+| Claude Code test machine | mostly 429; one 200 with 0 articles |
+
+Not one response with articles across four networks.
+
+## Decision (owner, 2026-10-05: "Fed, no paid APIs")
+- **No market headlines.** GDELT is dropped: not reliable from any network, so a daily 08:00 email can't depend on it. No free commercial API qualifies.
+- **Fed speeches RSS:** a fixed section with the latest 3 speeches, linked and dated, "Source: Federal Reserve Board" (no seal).
+- **BLS "latest numbers" RSS:** one request returns the newest CPI, unemployment rate, payroll jobs and PPI (value + month, "(p)" = preliminary). Shown verbatim with "Source: U.S. Bureau of Labor Statistics". Matched in Make with one Text parser module (`prompts/bls-pattern.make.txt`); tested against the live feed on 2026-10-05.
+- **Not used:** BEA (+2 credits would push the worst case to 414/month), SEC (mostly enforcement), Fed press releases (mostly bank approvals), Treasury (no quotable policy).
+- Gemini may mention a speech only by speaker, topic and date as given, and BLS values only exactly as given; never causation or interpretation.
