@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Synthetic sample in the shape of https://www.federalreserve.gov/feeds/speeches.xml (titles and links are invented). -->
+<rss version="2.0">
+  <channel>
+    <title>FRB: Speeches</title>
+    <link><![CDATA[https://www.federalreserve.gov/feeds/speeches.htm]]></link>
+    <item>
+      <title>Jefferson, The U.S. Economy and Monetary Policy</title>
+      <link><![CDATA[https://www.federalreserve.gov/newsevents/speech/sample-20261001a.htm]]></link>
+      <category>Speech</category>
+      <pubDate><![CDATA[Thu, 1 Oct 2026 14:30:00 GMT]]></pubDate>
+    </item>
+    <item>
+      <title>Cook, The Dual Mandate in Rural America</title>
+      <link><![CDATA[https://www.federalreserve.gov/newsevents/speech/sample-20260930a.htm]]></link>
+      <category>Speech</category>
+      <pubDate><![CDATA[Wed, 30 Sep 2026 17:00:00 GMT]]></pubDate>
+    </item>
+    <item>
+      <title>Barr, Economic Conditions and Monetary Policy</title>
+      <link><![CDATA[https://www.federalreserve.gov/newsevents/speech/sample-20260929a.htm]]></link>
+      <category>Speech</category>
+      <pubDate><![CDATA[Tue, 29 Sep 2026 15:00:00 GMT]]></pubDate>
+    </item>
+    <item>
+      <title>Waller, Payments in the Age of AI Agents</title>
+      <link><![CDATA[https://www.federalreserve.gov/newsevents/speech/sample-20260929b.htm]]></link>
+      <category>Speech</category>
+      <pubDate><![CDATA[Tue, 29 Sep 2026 13:00:00 GMT]]></pubDate>
+    </item>
+  </channel>
+</rss>

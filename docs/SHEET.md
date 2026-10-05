@@ -11,9 +11,10 @@ File settings: **Locale United States, Time zone (GMT-05:00) New York**. Share t
 | TX_CONFIRM_CAP | 70 (confirm emails per rolling 24 h) |
 | TX_UNSUB_CAP | 30 (unsubscribe emails per rolling 24 h) |
 | GEMINI_MODEL | same value as `GEMINI_MODEL` in .env |
+| GEMINI_FALLBACK_MODEL | same value as `GEMINI_FALLBACK_MODEL` in .env (used by the retry, module 15) |
 | SITE_URL | https://media-and-software-manger.vercel.app |
 | OWNER_EMAIL | your Gmail address |
-| FALLBACK_SUMMARY | Today's AI summary is unavailable. The headlines and crypto prices below come straight from our sources. |
+| FALLBACK_SUMMARY | Today's AI summary is unavailable. The sections below come straight from our sources. |
 
 Below, `cfg("KEY")` means `VLOOKUP("KEY",Config!$A:$B,2,FALSE)`.
 
@@ -30,7 +31,7 @@ Below, `cfg("KEY")` means `VLOOKUP("KEY",Config!$A:$B,2,FALSE)`.
 `date | subscribers | batches | status | error` (A–E). `status` ∈ ok, ok_no_ai, partial, failed, skipped.
 
 ## Feed (read by Make module 1)
-Row 1 = keys (A–L), row 2 = formulas.
+Row 1 = keys (A–M), row 2 = formulas.
 
 | Col | Key | Formula (row 2) |
 |---|---|---|
@@ -46,6 +47,7 @@ Row 1 = keys (A–L), row 2 = formulas.
 | J | site_url | `=cfg("SITE_URL")` |
 | K | owner_email | `=cfg("OWNER_EMAIL")` |
 | L | fallback_summary | `=cfg("FALLBACK_SUMMARY")` |
+| M | gemini_fallback_model | `=cfg("GEMINI_FALLBACK_MODEL")` |
 
 Three batch columns cover the 300 cap at 100 per batch; a higher cap breaks the Gmail budget (ARCHITECTURE §5).
 

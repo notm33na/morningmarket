@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // MarketMorning local preview (0 Make credits). Node 18+, no dependencies.
 //
-//   node tools/preview-digest.mjs            live: GDELT + CoinGecko + Gemini, keys from .env
+//   node tools/preview-digest.mjs            live: GDELT + CoinGecko + Fed speeches RSS + Gemini, keys from .env
 //   node tools/preview-digest.mjs --sample   samples/ only, no network calls
-//     add --variant=no-crypto or --variant=one-headline to test the degraded paths
+//     add --variant=no-crypto | one-headline | fed-only | ai-fallback to test the degraded paths
 //   node tools/preview-digest.mjs --make-body   print the raw Gemini body to paste into Make module 4
 //
 // Renders templates/digest-email.html and prompts/gemini-user.make.txt with a small
@@ -19,10 +19,11 @@ const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 const args = new Set(process.argv.slice(2));
 const SAMPLE = args.has('--sample');
 const VARIANT = [...args].find((a) => a.startsWith('--variant='))?.split('=')[1] ?? '';
-if (VARIANT && !['no-crypto', 'one-headline'].includes(VARIANT)) throw new Error(`Unknown --variant=${VARIANT}`);
+if (VARIANT && !['no-crypto', 'one-headline', 'fed-only', 'ai-fallback'].includes(VARIANT)) throw new Error(`Unknown --variant=${VARIANT}`);
 
 const COINGECKO_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true';
-const GEMINI_RETRY_MS = 20_000; // matches the Make Sleep module before the retry
+const FED_URL = 'https://www.federalreserve.gov/feeds/speeches.xml';
+const GEMINI_RETRY_MS = 10_000; // matches the Make Sleep module (14) before the fallback-model retry (15)
 
 // ---------- .env ----------
 function loadEnv() {
@@ -73,6 +74,7 @@ function buildFeed(env) {
     send_enabled: 'TRUE',
     gdelt_url: 'https://api.gdeltproject.org/api/v2/doc/doc?query=' + encodeUrl(query) + '&mode=artlist&maxrecords=6&timespan=24h&sort=hybridrel&format=json',
     gemini_model: env.GEMINI_MODEL || '{{GEMINI_MODEL}}',
+    gemini_fallback_model: env.GEMINI_FALLBACK_MODEL || env.GEMINI_MODEL || '{{GEMINI_FALLBACK_MODEL}}',
     fallback_json: JSON.stringify({ source: 'fallback', summary: fallbackSummary.replace(/"/g, "'"), story1_id: 1, story1_why: '', story2_id: 2, story2_why: '', crypto_note: '' }),
     active_count: 3,
     batch_count: 1,
@@ -196,6 +198,8 @@ const FUNCS = {
   replace: (s, a, b) => (s == null ? '' : String(s).split(a).join(b)),
   length: (x) => (Array.isArray(x) || typeof x === 'string' ? x.length : 0),
   escapeHTML: (s) => (s == null ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')),
+  trim: (s) => (s == null ? '' : String(s).trim()),
+  substring: (s, a, b) => (s == null ? '' : String(s).substring(num(a), b === undefined ? undefined : num(b))),
   formatNumber,
   formatDate,
   parseDate: (v, f) => (isEmpty(v) ? undefined : f === 'X' ? new Date(num(v) * 1000) : new Date(v)),
@@ -247,21 +251,40 @@ function makeBody() {
 // ---------- network ----------
 async function getJson(url, headers = {}) {
   try {
-    const res = await fetch(url, { headers, signal: AbortSignal.timeout(30_000) });
+    const res = await fetch(url, { headers, signal: AbortSignal.timeout(20_000) });
     if (!res.ok) { console.warn(`  ${new URL(url).host}: HTTP ${res.status} -> treated as empty (Make Resume)`); return undefined; }
     const text = await res.text();
     try { return JSON.parse(text); } catch { console.warn(`  ${new URL(url).host}: non-JSON body -> treated as empty`); return undefined; }
   } catch (e) { console.warn(`  ${new URL(url).host}: ${e.message} -> treated as empty`); return undefined; }
 }
 
+async function getText(url, headers = {}) {
+  try {
+    const res = await fetch(url, { headers, signal: AbortSignal.timeout(20_000) });
+    if (!res.ok) { console.warn(`  ${new URL(url).host}: HTTP ${res.status} -> treated as empty (Make Resume)`); return undefined; }
+    return await res.text();
+  } catch (e) { console.warn(`  ${new URL(url).host}: ${e.message} -> treated as empty`); return undefined; }
+}
+
+// Mirrors Make's XML › Parse XML output for an RSS 2.0 feed: { rss: { channel: { item: [{ title, link, pubDate, ... }] } } }
+function parseRss(xml) {
+  if (!xml || !/<rss[\s>]/.test(xml)) return undefined;
+  const text = (s) => (s ?? '').replace(/^\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*$/, '$1').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
+  const item = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((m) => Object.fromEntries(
+    ['title', 'link', 'pubDate', 'category', 'description'].map((k) => [k, text((m[1].match(new RegExp(`<${k}>([\\s\\S]*?)</${k}>`)) || [])[1])]),
+  ));
+  return { rss: { channel: { item } } };
+}
+
 async function callGemini(env, body) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_MODEL}:generateContent`;
   for (let attempt = 1; attempt <= 2; attempt++) {
+    const model = attempt === 1 ? env.GEMINI_MODEL : (env.GEMINI_FALLBACK_MODEL || env.GEMINI_MODEL); // module 4, then 15
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
     try {
-      const res = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body, signal: AbortSignal.timeout(60_000) });
-      if (res.ok) return await res.json();
-      console.warn(`  Gemini attempt ${attempt}: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
-    } catch (e) { console.warn(`  Gemini attempt ${attempt}: ${e.message}`); }
+      const res = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body, signal: AbortSignal.timeout(attempt === 1 ? 60_000 : 40_000) });
+      if (res.ok) { const j = await res.json(); j._model = model; return j; }
+      console.warn(`  Gemini attempt ${attempt} (${model}): HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
+    } catch (e) { console.warn(`  Gemini attempt ${attempt} (${model}): ${e.message}`); }
     if (attempt === 1) await new Promise((r) => setTimeout(r, GEMINI_RETRY_MS));
   }
   return undefined; // Make: retry route Resumes with empty data
@@ -274,28 +297,37 @@ async function main() {
   const env = loadEnv();
   const feed = buildFeed(env);
   const now = new Date();
-  let gdelt, coingecko, geminiResponse;
+  let gdelt, coingecko, fed, geminiResponse;
 
   if (SAMPLE) {
     gdelt = JSON.parse(read('samples/gdelt.sample.json'));
     coingecko = JSON.parse(read('samples/coingecko.sample.json'));
+    fed = parseRss(read('samples/fed-speeches.sample.xml'));
     if (VARIANT === 'no-crypto') coingecko = undefined; // Make module 3 Resumes with empty data
     if (VARIANT === 'one-headline') gdelt = { articles: gdelt.articles.slice(0, 1) };
-    const out = JSON.parse(read(`samples/gemini-output${VARIANT ? '.' + VARIANT : ''}.sample.json`));
-    geminiResponse = { candidates: [{ content: { parts: [{ text: JSON.stringify(out) }] }, finishReason: 'STOP' }] };
+    if (VARIANT === 'fed-only') gdelt = undefined; // GDELT throttled: module 2 Resumes with empty data
+    if (VARIANT === 'ai-fallback') geminiResponse = undefined; // modules 4 and 15 both failed
+    else {
+      const out = JSON.parse(read(`samples/gemini-output${VARIANT && VARIANT !== 'ai-fallback' ? '.' + VARIANT : ''}.sample.json`));
+      geminiResponse = { candidates: [{ content: { parts: [{ text: JSON.stringify(out) }] }, finishReason: 'STOP' }] };
+    }
   } else {
     for (const k of ['GEMINI_API_KEY', 'GEMINI_MODEL', 'COINGECKO_API_KEY']) if (!env[k]) throw new Error(`Missing ${k} in .env (or use --sample)`);
+    if (!env.GEMINI_FALLBACK_MODEL) console.warn('  GEMINI_FALLBACK_MODEL is not set: the retry reuses GEMINI_MODEL here, but Make module 15 would fail (check C7).');
     console.log('GDELT:', feed.gdelt_url);
     gdelt = await getJson(feed.gdelt_url);
     coingecko = await getJson(COINGECKO_URL, { 'x-cg-demo-api-key': env.COINGECKO_API_KEY });
+    fed = parseRss(await getText(FED_URL, { 'user-agent': `MarketMorning portfolio demo (${feed.site_url})` }));
+    if (!fed) console.warn('  Fed speeches feed: empty or not RSS -> treated as empty');
   }
 
-  const ctx = { now, bundles: { 1: feed, 2: { data: gdelt }, 3: { data: coingecko } } };
+  const ctx = { now, bundles: { 1: feed, 2: { data: gdelt }, 3: { data: coingecko }, 17: fed } };
 
   // Router R1
   const articles = gdelt?.articles ?? [];
-  if (feed.send_enabled !== 'TRUE' || (articles.length === 0 && isEmpty(coingecko?.bitcoin?.usd))) {
-    console.log('SKIPPED (route B): no headlines and no crypto data.');
+  const fedItems = fed?.rss?.channel?.item ?? [];
+  if (feed.send_enabled !== 'TRUE' || (articles.length === 0 && isEmpty(coingecko?.bitcoin?.usd) && fedItems.length === 0)) {
+    console.log('SKIPPED (route B): no headlines, no crypto data and no Fed feed.');
     return;
   }
 
@@ -323,9 +355,11 @@ async function main() {
     feed: { ...feed, batch_1: '(redacted)' },
     gdelt,
     coingecko,
+    fed_speeches: fedItems,
     gemini_user_text: bodyJson.contents[0].parts[0].text,
     gemini_output: digest,
     ai_source: digest.source === 'fallback' ? 'fallback' : 'gemini',
+    gemini_model_used: SAMPLE ? 'sample' : (geminiResponse?._model ?? null),
   }, null, 2));
   console.log(`Wrote ${base}.html and .input.json (AI: ${digest.source === 'fallback' ? 'fallback' : 'gemini'})`);
 }

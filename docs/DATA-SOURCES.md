@@ -15,6 +15,39 @@
 
 ## Decision
 - **Stocks: no free source qualifies.** The email shows **no stock prices, % changes or index levels**. Stock coverage comes from GDELT headlines plus Gemini's narrative, and the prompt forbids stock numbers.
-- **Crypto: CoinGecko Demo API**, one `/simple/price` call per run (~23/month of 10,000). We show price and 24 h % change for BTC, ETH, SOL, XRP, BNB and DOGE, with "Powered by CoinGecko" (14 px ≈ 10.5 pt) and the logo beside the table and in the footer. The use is non-commercial (free, no ads); anything commercial needs a paid CoinGecko plan.
+- **Crypto: CoinGecko Demo API**, one `/simple/price` call per run (~23/month of 10,000). We show price and 24 h % change for BTC, ETH, SOL, XRP, BNB and DOGE, with "Powered by CoinGecko" (14 px ≈ 10.5 pt) and the logo beside the table, plus a text credit in the footer. The use is non-commercial (free, no ads); anything commercial needs a paid CoinGecko plan.
 - **Headlines: GDELT** (unlimited use with citation and a link to gdeltproject.org), unchanged.
 - **GOOGLEFINANCE is removed from the design**, so it is no longer in the risk register.
+
+# Headline sources (decided 2026-10-05)
+
+**Why this was revisited:** live previews on 2026-10-05 got HTTP 429 ("Please limit requests to one every 5 seconds") and connection timeouts from GDELT at a few requests per hour, and one response with zero articles. GDELT's own documentation only says its APIs "are rate limited to protect the underlying ElasticSearch clusters" ([blog](https://blog.gdeltproject.org/ukraine-api-rate-limiting-web-ngrams-3-0/)); it does not document per-IP throttling. Make's shared outbound IPs are used by many customers, so the same throttling is likely there (check C12).
+
+## Commercial news APIs
+| Source | Terms | Free-tier display to subscribers? | Notes |
+|---|---|---|---|
+| NewsAPI.org | [pricing](https://newsapi.org/pricing) | **No**: Developer plan "cannot be used in a staging or production environment"; 24 h delay | 100 requests/day |
+| GNews | [pricing](https://gnews.io/pricing) | **No**: "for non-commercial projects, development and testing only. Commercial and published projects need a paid plan." | 100/day, 12 h delay |
+| Marketaux | [pricing](https://www.marketaux.com/pricing) | **Not verifiable**: the pricing page states no licence and the terms URL returned 404 | 100/day |
+| The Guardian Open Platform, NYT APIs | – | **Not verifiable**: both sites block our research tool, so their terms could not be read from the source | Excluded until the owner verifies |
+
+No commercial source clearly qualifies.
+
+## US government feeds (public domain)
+Measured live on 2026-10-05; "weekdays with items" = distinct weekdays with a new item in the last 30 days.
+| Feed | URL (RSS 2.0) | Terms (agency's own page) | Weekdays with items / 20 | Relevance |
+|---|---|---|---|---|
+| **Fed speeches** | federalreserve.gov/feeds/speeches.xml | "information on Board's website is in the public domain and may be copied and distributed without permission. Please cite to the Board as the source"; seals/logos need permission ([disclaimer](https://www.federalreserve.gov/disclaimer.htm)) | 7 (15 items) | High: every item is a Governor on policy, the economy or regulation |
+| Fed press releases (all) | federalreserve.gov/feeds/press_all.xml | same | 10 | Low–mixed: mostly bank approvals and enforcement actions; FOMC statements are in press_monetary.xml (1 day in 30) |
+| SEC press releases | sec.gov/news/pressreleases.rss | "considered public information and may be copied or further distributed … without the SEC's permission"; ≤ 10 requests/s, no "unclassified" bots ([privacy page](https://www.sec.gov/about/privacy-information)) | 11 | Medium–low: mostly enforcement; occasional crypto policy |
+| BLS | bls.gov/feed/bls_latest.rss (+ cpi_latest, empsit) | "everything that we publish … is in the public domain … we do ask that you cite the Bureau of Labor Statistics" ([copyright](https://www.bls.gov/opub/copyright-information.htm)) | 1 item, updated on release days | High on CPI/jobs days, otherwise unchanged |
+| BEA | apps.bea.gov/rss/rss.xml | "in the public domain and may be used or reproduced without specific permission … 'Source: U.S. Bureau of Economic Analysis'" ([FAQ](https://www.bea.gov/help/faq/147)) | 2 | High on GDP/PCE days; returns 406 if an `Accept` header is sent |
+| Treasury | press releases page | Policy page states no copyright position we could quote | – | Excluded |
+
+**Relevance, honestly:** government releases cannot replace market news. On most days nothing new appears in the last 24 hours, and the useful feeds (FOMC, CPI, jobs, GDP) publish a few days a month. The Fed speeches feed is the exception worth carrying daily: it always has recent, dated, policy-relevant items, and Fed speeches are a standing market topic.
+
+## Decision
+- **GDELT stays primary** for stories and headlines (no retry; no extra credits).
+- **Add a fixed "From the Federal Reserve" section:** the latest 3 Fed speeches with their dates, linked from the feed, "Source: Federal Reserve Board". It is fetched every run (HTTP + Parse XML = 2 credits), so on GDELT-failure days the email still has dated, licensed, relevant news, and Gemini writes the summary from it.
+- Gemini may mention a speech only by speaker, topic and date as given in its title, never as a cause of a market move.
+- Not used: SEC, BLS, BEA and Treasury (low daily relevance or extra credits for rare items). BLS and BEA are the next candidates if a "data release day" section is ever added.
