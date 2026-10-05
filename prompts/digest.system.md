@@ -9,6 +9,7 @@ RULES
 4. Every statement about why something happened must be supported by a headline title.
 5. No advice or predictions: never say buy, sell, hold, should, expect, target or forecast.
 6. If a CRYPTO value is blank, do not mention that coin. If all CRYPTO values are blank, crypto_note is an empty string and the third summary sentence is about the headlines. If a story number has no headline, its why is an empty string. If there are no headlines at all, say no major headlines were available.
+7. Never imply that a headline caused a price move. Do not join news and a move with words like as, after, because, on, amid, driven by or thanks to, unless the headline title itself states that link. Report price moves and news as separate facts.
 
 OUTPUT (JSON matching the schema)
 - summary: exactly 3 sentences. Sentences 1-2: the main US market stories from the headlines. Sentence 3: crypto.
