@@ -83,7 +83,7 @@ function tokenize(src) {
     const two = src.slice(i, i + 2);
     if (['>=', '<=', '!='].includes(two)) { out.push({ t: 'op', v: two }); i += 2; continue; }
     if ('()=<>+-;'.includes(c)) { out.push({ t: c === '(' || c === ')' || c === ';' ? c : 'op', v: c }); i++; continue; }
-    const m = src.slice(i).match(/^[A-Za-z0-9_.$\[\]]+/);
+    const m = src.slice(i).match(/^[A-Za-z0-9_.$`\[\]]+/);
     if (!m) throw new Error(`Unexpected "${c}" in {{${src}}}`);
     out.push({ t: 'word', v: m[0] }); i += m[0].length;
   }
@@ -135,7 +135,8 @@ const num = (v) => (typeof v === 'number' ? v : v === '' || v == null ? NaN : Nu
 function resolvePath(path, ctx) {
   const parts = path.split('.');
   let cur = ctx.bundles[parts.shift()];
-  for (const part of parts) {
+  for (const raw of parts) {
+    const part = raw.replace(/`/g, ''); // Make quotes numeric keys: 1.`8`
     const m = part.match(/^([^\[]+)((?:\[\d+\])*)$/);
     if (!m) return undefined;
     cur = cur?.[m[1]];
@@ -308,7 +309,9 @@ async function main() {
 
   const bls = matchBls(blsText);
   if (!SAMPLE && isEmpty(bls.cpi)) console.warn('  BLS latest numbers: pattern did not match -> section hidden');
-  const ctx = { now, bundles: { 1: feed, 2: { data: blsText }, 3: { data: coingecko }, 17: fed, 18: bls } };
+  // Make keys Get Range Values output by column index (0–11); header names are labels only (check C21)
+  const feedRow = Object.fromEntries(Object.values(feed).map((v, i) => [String(i), v]));
+  const ctx = { now, bundles: { 1: feedRow, 2: { data: blsText }, 3: { data: coingecko }, 17: fed, 18: bls } };
 
   // Router R1
   const fedItems = fed?.rss?.channel?.item ?? [];
@@ -325,7 +328,7 @@ async function main() {
   ctx.bundles[4] = { data: geminiResponse };
 
   // Module 5: Parse JSON with fallback
-  const text = evaluate(parse(tokenize('ifempty(4.data.candidates[1].content.parts[1].text; 1.fallback_json)')), ctx);
+  const text = evaluate(parse(tokenize('ifempty(4.data.candidates[1].content.parts[1].text; 1.`2`)')), ctx);
   let digest;
   try { digest = JSON.parse(text); } catch { digest = { source: 'fallback', summary: feed.fallback_summary, crypto_note: '' }; }
   ctx.bundles[5] = digest;

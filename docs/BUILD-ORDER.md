@@ -43,9 +43,9 @@ Follow [MAIA-PROMPTS.md](MAIA-PROMPTS.md).
 
 Use 3 `{{TEST_EMAIL+mmN}}` active rows in Subscribers. Single-module checks (C6, C22, C23, C24, C25) use "Run this module only" (≈ 1 credit each).
 - **C19** In the editor, IDs 1–18 match ARCHITECTURE §2 (Parse JSON 5, Gmail 6–8, retry 15, Fed RSS 16, Parse XML 17, BLS match 18), and routers/directives are ≥ 19. *Fallback:* rebuild in the documented order; IDs can't be renumbered.
-- **C21** Module 1 output shows the 12 keys `send_enabled` … `gemini_fallback_model`. *Fallback:* change the `1.*` references in the template and prompt to Make's actual keys, and mirror them in `buildFeed()` of the preview tool.
+- **C21** Module 1 output lists columns 0–11 labelled `send_enabled` … `gemini_fallback_model`. *Result 2026-10-05:* Make keys them by column number, so every Feed mapping uses `` {{1.`N`}} `` (raw pill text confirmed by copying a pill). *Fallback if a later export differs:* copy one pill's raw text and update the template, prompts and `feedRow` in the preview tool to match.
 - **C6** Module 4 returns 200 when a Fed title contains `"` and `\`, and the schema is accepted. *Fallback:* add JSON › Create JSON (next free ID) before module 4 (+1 credit, already in the 16 worst case). If `responseJsonSchema` is rejected, use `responseSchema` with the same schema minus `additionalProperties`. If Make treats `\`/`\"` in string literals differently from the preview tool, change the tool's tokenizer to match.
-- **C9** BCC from `split(1.batch_n; ",")` (field in Map mode) delivers to all 3 test addresses with none visible to others. *Fallback:* map BCC as one item per address.
+- **C9** BCC from `` split(1.`5`/`6`/`7`; ",") `` (field in Map mode) delivers to all 3 test addresses with none visible to others. *Fallback:* map BCC as one item per address.
 - **C22** Module 17's output path is `17.rss.channel.item[]`, with `title`, `link` and `pubDate` as plain text (CDATA unwrapped), and `trim(substring(pubDate; 5; 16))` gives e.g. "1 Oct 2026". Items are newest first. Dates are the feed's GMT day (a speech after 20:00 ET shows the next day); accepted.
   - *Fallback:* change the `17.…` paths in the template and user prompt to Make's actual structure. Mirror the change in `parseRss()` of the preview tool, then regenerate the Make body.
   - If module 16's "Parse response" already yields the parsed XML, drop module 17 (−1 credit). Then change `17.rss…` to `16.data.rss…` everywhere: template, user prompt, the `FED` expression in R1/ERR, and `ctx.bundles` in the tool.
@@ -54,7 +54,7 @@ Use 3 `{{TEST_EMAIL+mmN}}` active rows in Subscribers. Single-module checks (C6,
   - *Fallback:* if Make names the groups differently (or needs backticks), replace `18.cpi`…`18.ppi` in the template, user prompt, R1/ERR and module 10 with the exact pill text, and mirror it in `matchBls()` of the tool.
   - If BLS changed its markup, update `prompts/bls-pattern.make.txt` (test it locally first), then paste the new pattern.
 - **C25** Module 2 returns 200 RSS from Make on 3 test days, and `2.data` shows as text, not binary. *Fallback:* if binary, map `{{toString(2.data)}}` in module 18. If blocked (403), type a contact email (email only, no name) into module 2's User-Agent **in Make only** (never in files; the blueprint scrub removes emails). If still blocked, delete modules 2 and 18 (−2 credits), remove the `18.*` gates from R1, ERR and module 10, remove the BLS blocks from the template and prompt, mirror that in the tool, and regenerate the Make body.
-- **C13** R1 "Content OK" passes on a normal run and sends all-empty runs to the fallback route. R1 is one AND group: `1.send_enabled` Text = `TRUE`, and the source count Numeric > 0. *Fallback:* use Boolean "Equal to" `true` for the first condition. If the count expression errors, split it into three OR groups, each `send_enabled = TRUE` AND one source condition.
+- **C13** R1 "Content OK" passes on a normal run and sends all-empty runs to the fallback route. R1 is one AND group: `` 1.`0` `` Text = `TRUE`, and the source count Numeric > 0. *Fallback:* use Boolean "Equal to" `true` for the first condition. If the count expression errors, split it into three OR groups, each `send_enabled = TRUE` AND one source condition.
 - **C13b** Modules 9/10 on R2's last route can map `6.id`, `7.id`, `8.id`. *Fallback:* drop R2 and chain 6 → 7 → 8 → 9 → 10 with no filters; an empty batch then sends an owner-only copy (same credits, ≤ 2 extra recipients/day).
 - **C14b** These must all work:
   - Resume with empty `data` on modules 2, 3, 16, 17 and 18.
@@ -64,7 +64,7 @@ Use 3 `{{TEST_EMAIL+mmN}}` active rows in Subscribers. Single-module checks (C6,
 
   *Fallback:*
   - If Make offers no error handler on module 15, set 15's "Evaluate all states as errors" to No.
-  - If Resume can't carry `{{15.data}}`, set module 5 to `{{ifempty(4.data.candidates[1].content.parts[1].text; ifempty(15.data.candidates[1].content.parts[1].text; 1.fallback_json))}}`.
+  - If Resume can't carry `{{15.data}}`, set module 5 to `` {{ifempty(4.data.candidates[1].content.parts[1].text; ifempty(15.data.candidates[1].content.parts[1].text; 1.`2`))}} ``.
 - **C20** PRD test 5 (CoinGecko empty): the email still sends and shows "Crypto prices unavailable today." *Fallback:* if `parseDate`/`formatDate` still error on empty input, replace the as-of expression with a fixed "Crypto prices: last 24 hours" label.
 - **C18** The email rendered by Make matches the local preview for the same inputs: save module 2, 3, 16 and 4-text outputs as `bls.rss`, `coingecko.json`, `fed.xml`, `gemini-output.json` in a folder outside the repo and run `node tools/preview-digest.mjs --from=<folder>`. *Fallback:* adjust the template expression and re-run `--sample`.
 

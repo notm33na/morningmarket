@@ -49,25 +49,25 @@ flowchart LR
 
 | ID | Module | Key settings and mappings | Error handler | Credits |
 |---|---|---|---|---|
-| 1 | Google Sheets › Get range values | `Feed!A1:L2`, table contains headers: Yes | 13 Slack "MarketMorning FAILED: Sheet read: {{error.message}}" → **Ignore** (13 also gets its own Ignore handler) | 1 (+1) |
-| 2 | HTTP › Make a request | GET `https://www.bls.gov/feed/bls_latest.rss`; header `User-Agent: MarketMorning portfolio demo ({{1.site_url}})`; parse: No; timeout 20 s | **Resume**, `data` empty | 1 |
+| 1 | Google Sheets › Get range values | `Feed!A1:L2`, table contains headers: Yes. Make keys the output by **column number** (header names are only labels): 0 send_enabled, 1 gemini_model, 2 fallback_json, 3 active_count, 4 batch_count, 5–7 batch_1–3, 8 site_url, 9 owner_email, 10 fallback_summary, 11 gemini_fallback_model; mapped as `` {{1.`8`}} `` | 13 Slack "MarketMorning FAILED: Sheet read: {{error.message}}" → **Ignore** (13 also gets its own Ignore handler) | 1 (+1) |
+| 2 | HTTP › Make a request | GET `https://www.bls.gov/feed/bls_latest.rss`; header `` User-Agent: MarketMorning portfolio demo ({{1.`8`}}) ``; parse: No; timeout 20 s | **Resume**, `data` empty | 1 |
 | 3 | HTTP › Make a request | GET `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true`; keychain "CoinGecko" (header `x-cg-demo-api-key`); parse: Yes; timeout 20 s | **Resume**, `data` empty | 1 |
-| 16 | HTTP › Make a request | GET `https://www.federalreserve.gov/feeds/speeches.xml`; header `User-Agent: MarketMorning portfolio demo ({{1.site_url}})`; parse: No; timeout 20 s | **Resume**, `data` empty | 1 |
+| 16 | HTTP › Make a request | GET `https://www.federalreserve.gov/feeds/speeches.xml`; header `` User-Agent: MarketMorning portfolio demo ({{1.`8`}}) ``; parse: No; timeout 20 s | **Resume**, `data` empty | 1 |
 | 17 | XML › Parse XML | XML `{{16.data}}` (`{{toString(16.data)}}` if it arrives as binary, C23); data structure generated from `samples/fed-speeches.sample.xml` | **Resume**, empty | 1 |
 | 18 | Text parser › Match pattern | Pattern = `prompts/bls-pattern.make.txt`; text `{{2.data}}` (`{{toString(2.data)}}` if binary, C25); global match: No; case sensitive: Yes; **continue the execution of the route even if the module finds no matches: Yes**. Named groups → outputs `cpi`, `unemployment`, `payrolls`, `ppi` (value + month) | Resume | 1 |
-| R1 | Router | Route A "Content OK" (one AND group): `1.send_enabled` Text = `TRUE` **and** `{{length(FED) + if(3.data.bitcoin.usd; 1; 0) + if(18.cpi; 1; 0)}}` Numeric > `0`. Route B = fallback route "Skip" | – | 0 |
-| 4 | HTTP › Make a request | POST `https://generativelanguage.googleapis.com/v1beta/models/{{1.gemini_model}}:generateContent`; keychain "Gemini" (header `x-goog-api-key`); raw body = `prompts/gemini-body.make.txt` (generated, §3.2); parse: Yes; timeout 60 s | 14 Sleep 10 s → **15** (clone of 4 with `{{1.gemini_fallback_model}}`, timeout 40 s) → **Resume** with `data` = `{{15.data}}`; 15's handler: **Resume**, `data` empty | 1 (+2) |
-| 5 | JSON › Parse JSON | `{{ifempty(4.data.candidates[1].content.parts[1].text; 1.fallback_json)}}`; data structure `source`, `summary`, `crypto_note` | **Resume**: `source`=fallback, `summary`=`{{1.fallback_summary}}`, `crypto_note` empty | 1 |
-| R2 | Router | →6 filter `1.batch_count` ≥ 1 (numeric); →7 ≥ 2; →8 ≥ 3; →9 no filter (last) | – | 0 |
-| 6–8 | Gmail › Send an email | To `{{1.owner_email}}`; BCC (map) `{{split(1.batch_n; ",")}}`; Subject `MarketMorning · {{formatDate(now; "ddd, MMM D"; "America/New_York")}}: the Fed, US data and crypto`; Raw HTML = [templates/digest-email.html](../templates/digest-email.html); header `List-Unsubscribe: <{{1.site_url}}/unsubscribe>` | **Resume** | 1 each |
-| 9 | Sheets › Add a row | SendLog: date, `{{1.active_count}}`, `SENT`, `STATUS`, `ERR` (full strings in MAIA-PROMPTS Step 4) | Resume | 1 |
-| 10 | Slack › Create a message | `MarketMorning STATUS: attempted {{1.active_count}} subscribers, SENT/{{1.batch_count}} batches delivered. ERR` | Ignore | 1 |
-| 11 | Sheets › Add a row | SendLog: date, `{{1.active_count}}`, 0, `skipped`, `send disabled or no content` | Resume | 1 |
+| R1 | Router | Route A "Content OK" (one AND group): `` 1.`0` `` Text = `TRUE` **and** `{{length(FED) + if(3.data.bitcoin.usd; 1; 0) + if(18.cpi; 1; 0)}}` Numeric > `0`. Route B = fallback route "Skip" | – | 0 |
+| 4 | HTTP › Make a request | POST `` https://generativelanguage.googleapis.com/v1beta/models/{{1.`1`}}:generateContent ``; keychain "Gemini" (header `x-goog-api-key`); raw body = `prompts/gemini-body.make.txt` (generated, §3.2); parse: Yes; timeout 60 s | 14 Sleep 10 s → **15** (clone of 4 with `` {{1.`11`}} ``, timeout 40 s) → **Resume** with `data` = `{{15.data}}`; 15's handler: **Resume**, `data` empty | 1 (+2) |
+| 5 | JSON › Parse JSON | `` {{ifempty(4.data.candidates[1].content.parts[1].text; 1.`2`)}} ``; data structure `source`, `summary`, `crypto_note` | **Resume**: `source`=fallback, `summary`=`` {{1.`10`}} ``, `crypto_note` empty | 1 |
+| R2 | Router | →6 filter `` 1.`4` `` ≥ 1 (numeric); →7 ≥ 2; →8 ≥ 3; →9 no filter (last) | – | 0 |
+| 6–8 | Gmail › Send an email | To `` {{1.`9`}} ``; BCC (map) `` {{split(1.`5`/`6`/`7`; ",")}} ``; Subject `MarketMorning · {{formatDate(now; "ddd, MMM D"; "America/New_York")}}: the Fed, US data and crypto`; Raw HTML = [templates/digest-email.html](../templates/digest-email.html); header `` List-Unsubscribe: <{{1.`8`}}/unsubscribe> `` | **Resume** | 1 each |
+| 9 | Sheets › Add a row | SendLog: date, `` {{1.`3`}} ``, `SENT`, `STATUS`, `ERR` (full strings in MAIA-PROMPTS Step 4) | Resume | 1 |
+| 10 | Slack › Create a message | `` MarketMorning STATUS: attempted {{1.`3`}} subscribers, SENT/{{1.`4`}} batches delivered. ERR `` | Ignore | 1 |
+| 11 | Sheets › Add a row | SendLog: date, `` {{1.`3`}} ``, 0, `skipped`, `send disabled or no content` | Resume | 1 |
 | 12 | Slack › Create a message | `MarketMorning SKIPPED: SEND_ENABLED off, or the Fed feed, BLS and CoinGecko all empty.` | Ignore | 1 |
 
 Inline expressions (Gmail "message ID" output shown as `6.id`):
 - `SENT` = `if(6.id; 1; 0) + if(7.id; 1; 0) + if(8.id; 1; 0)`
-- `STATUS` = `if(1.batch_count = 0; "ok"; if(SENT = 0; "failed"; if(SENT < 1.batch_count; "partial"; if(5.source = "fallback"; "ok_no_ai"; "ok"))))`
+- `STATUS` = `` if(1.`4` = 0; "ok"; if(SENT = 0; "failed"; if(SENT < 1.`4`; "partial"; if(5.source = "fallback"; "ok_no_ai"; "ok")))) ``
 - `ERR` = "AI fallback. " / "No BLS data. " (`18.cpi` empty) / "No crypto data. " / "No Fed feed. " / "Batch failures. ", as applicable (full strings in MAIA-PROMPTS Step 4; module 10 uses the same ERR).
 
 ## 3. Data contracts

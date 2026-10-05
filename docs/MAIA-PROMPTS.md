@@ -21,7 +21,7 @@ How to build the MarketMorning scenario with Maia (Make's AI scenario builder), 
 - **Paste test:** text in `{{1.key}}` form, pasted into a Make field, should turn into purple mapping pills. Step 1 tests this once before you rely on it.
 
 **Rules for Maia (in every prompt):**
-- Maia adds modules and changes settings, and fills only single-item mappings such as `{{1.gemini_model}}`.
+- Maia adds modules and changes settings, and fills only single-item mappings such as `` {{1.`1`}} ``.
 - Maia does not build filters, router conditions, error handlers, data structures, or any mapping that contains a function. Those are listed under "For you to do manually", with exact values.
 - **Credits:** Maia's own replies may cost credits. Check **Credit usage** after Prompt 1. If Maia's 6 prompts would push the test total in Step 8 over 150, skip test 4 (−16) in addition to optional test 11.
 
@@ -33,7 +33,7 @@ In the scenario "MarketMorning", create exactly three modules, in this order, li
 
 Module 1 – Google Sheets › Get Range Values. Label: "1 Read Feed". Connection: my Google Sheets connection (ask me). Search method: Enter manually. Spreadsheet ID: [TYPE SHEET ID HERE YOURSELF]. Sheet name: Feed. Range: A1:L2. Table contains headers: Yes.
 
-Module 2 – HTTP › Make a request. Label: "2 BLS latest numbers". URL: https://www.bls.gov/feed/bls_latest.rss . Method: GET. Authentication: none. Headers: one header, name User-Agent, value MarketMorning portfolio demo (then map {{1.site_url}} in brackets). Parse response: No. Timeout: 20 seconds. Evaluate all states as errors: Yes.
+Module 2 – HTTP › Make a request. Label: "2 BLS latest numbers". URL: https://www.bls.gov/feed/bls_latest.rss . Method: GET. Authentication: none. Headers: one header, name User-Agent, value MarketMorning portfolio demo (then map {{1.`8`}} in brackets). Parse response: No. Timeout: 20 seconds. Evaluate all states as errors: Yes.
 
 Module 3 – HTTP › Make a request. Label: "3 CoinGecko prices". URL: https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true . Method: GET. Authentication: API key, keychain [COINGECKO KEYCHAIN] (stop and ask me to create it: key in header x-cg-demo-api-key). Parse response: Yes. Timeout: 20 seconds. Evaluate all states as errors: Yes.
 ```
@@ -43,11 +43,11 @@ Module 3 – HTTP › Make a request. Label: "3 CoinGecko prices". URL: https://
 
 **Check after Maia**
 - IDs are 1, 2, 3, with the labels given.
-- Module 2's User-Agent header reads `MarketMorning portfolio demo ({{1.site_url}})` with the pill; parse response is No.
+- Module 2's User-Agent header reads `` MarketMorning portfolio demo ({{1.`8`}}) `` with the pill; parse response is No.
 - Module 3 has no key typed into the URL.
-- **Paste test (0 credits):** paste `{{1.site_url}}` into any empty text field. It should become a pill; then delete it. If it stays plain text, build every later paste with the mapping panel instead, and use Make's full-screen editor for the long ones.
+- **Paste test (0 credits):** paste `` {{1.`8`}} `` into any empty text field. It should become a pill; then delete it. If it stays plain text, build every later paste with the mapping panel instead, and use Make's full-screen editor for the long ones.
 
-**Checks now** (Run this module only; if Make asks for mapped inputs, paste the value of Feed!I2 for `1.site_url`)
+**Checks now** (Run this module only; if Make asks for mapped inputs, paste the value of Feed!I2 for `` 1.`8` ``)
 - **C21:** module 1 output shows the 12 keys `send_enabled` … `gemini_fallback_model`. ≈1 credit.
 - **C25, day 1:** module 2 returns 200 with RSS text containing "Consumer Price Index". ≈1 credit.
 - **Keychain sanity:** module 3 returns prices. ≈1 credit.
@@ -58,7 +58,7 @@ Module 3 – HTTP › Make a request. Label: "3 CoinGecko prices". URL: https://
 ```
 In "MarketMorning", after module 3, add exactly two modules in this order, chained 3 → 4 → 5. Do not change modules 1–3. No other modules, routers, filters or error handlers. Do not run or activate the scenario. Stop and ask if a connection or keychain is needed. Rename each module to its label.
 
-Module 4 – HTTP › Make a request. Label: "4 Gemini digest". URL: https://generativelanguage.googleapis.com/v1beta/models/{{1.gemini_model}}:generateContent (map 1.gemini_model as a pill). Method: POST. Authentication: API key, keychain [GEMINI KEYCHAIN] (stop and ask me to create it: key in header x-goog-api-key). Body type: Raw. Content type: JSON (application/json). Request content: {} (a temporary placeholder; Make will not save an empty JSON body – I will replace it). Parse response: Yes. Timeout: 60 seconds. Evaluate all states as errors: Yes.
+Module 4 – HTTP › Make a request. Label: "4 Gemini digest". URL: https://generativelanguage.googleapis.com/v1beta/models/{{1.`1`}}:generateContent (map 1.`1` as a pill). Method: POST. Authentication: API key, keychain [GEMINI KEYCHAIN] (stop and ask me to create it: key in header x-goog-api-key). Body type: Raw. Content type: JSON (application/json). Request content: {} (a temporary placeholder; Make will not save an empty JSON body – I will replace it). Parse response: Yes. Timeout: 60 seconds. Evaluate all states as errors: Yes.
 
 Module 5 – JSON › Parse JSON. Label: "5 Parse digest". JSON string: leave EMPTY. Data structure: leave EMPTY – I will create it.
 ```
@@ -66,10 +66,10 @@ Module 5 – JSON › Parse JSON. Label: "5 Parse digest". JSON string: leave EM
 - Create the "Gemini" keychain: placement **Header**, name `x-goog-api-key`.
 - **Module 5, data structure:** **Add**, then **Generator** (content type JSON), and paste:
   `{"source":"","summary":"","crypto_note":""}`
-- **Module 5, JSON string:** `{{ifempty(4.data.candidates[1].content.parts[1].text; 1.fallback_json)}}`
+- **Module 5, JSON string:** `` {{ifempty(4.data.candidates[1].content.parts[1].text; 1.`2`)}} ``
 - Module 4's real body waits until Step 5c, because it references modules 17 and 18. Until then it holds the placeholder `{}` (Make won't save an empty Raw/JSON body); don't run module 4 before Step 5c.
 
-**Check after Maia:** IDs 1–3 unchanged and still configured; new IDs 4 and 5; the URL has the `1.gemini_model` pill; the body is just `{}`.
+**Check after Maia:** IDs 1–3 unchanged and still configured; new IDs 4 and 5; the URL has the `` 1.`1` `` pill; the body is just `{}`.
 
 *No runs. Running total: 3 / 150.*
 
@@ -77,17 +77,17 @@ Module 5 – JSON › Parse JSON. Label: "5 Parse digest". JSON string: leave EM
 ```
 In "MarketMorning", after module 5, add exactly three Gmail modules, chained 5 → 6 → 7 → 8 (I will rewire them later). Do not change modules 1–5. No routers, filters or error handlers. Do not run or activate. Stop and ask for the Gmail connection. Rename each to its label.
 
-For each of the three: Gmail › Send an Email. Connection: my Gmail connection (ask me). To: map {{1.owner_email}}. Body type: Raw HTML. Content: placeholder (a temporary word; Make may not save an empty required field – I will replace it). Subject: placeholder. BCC: leave EMPTY.
+For each of the three: Gmail › Send an Email. Connection: my Gmail connection (ask me). To: map {{1.`9`}}. Body type: Raw HTML. Content: placeholder (a temporary word; Make may not save an empty required field – I will replace it). Subject: placeholder. BCC: leave EMPTY.
 Labels, in creation order: "6 Send batch 1", "7 Send batch 2", "8 Send batch 3".
 ```
 **For you to do manually**
 - **Now, in each module:**
-  - **BCC:** click the field's **Map** toggle, then paste `{{split(1.batch_1; ",")}}` (6), `{{split(1.batch_2; ",")}}` (7) or `{{split(1.batch_3; ",")}}` (8).
+  - **BCC:** click the field's **Map** toggle, then paste `` {{split(1.`5`; ",")}} `` (6), `` {{split(1.`6`; ",")}} `` (7) or `` {{split(1.`7`; ",")}} `` (8).
   - **Subject:** `MarketMorning · {{formatDate(now; "ddd, MMM D"; "America/New_York")}}: the Fed, US data and crypto`
-  - **Additional email headers:** name `List-Unsubscribe`, value `<{{1.site_url}}/unsubscribe>`.
+  - **Additional email headers:** name `List-Unsubscribe`, value `` <{{1.`8`}}/unsubscribe> ``.
 - **In Step 5c:** paste the content (the email HTML).
 
-**Check after Maia:** IDs 1–5 unchanged; new IDs 6, 7, 8; To is the `1.owner_email` pill; body type Raw HTML. Any field Maia couldn't leave empty holds the word `placeholder`; replace it as listed (subject now, content in Step 5c).
+**Check after Maia:** IDs 1–5 unchanged; new IDs 6, 7, 8; To is the `` 1.`9` `` pill; body type Raw HTML. Any field Maia couldn't leave empty holds the word `placeholder`; replace it as listed (subject now, content in Step 5c).
 
 *No runs. Running total: 3 / 150.*
 
@@ -95,9 +95,9 @@ Labels, in creation order: "6 Send batch 1", "7 Send batch 2", "8 Send batch 3".
 ```
 In "MarketMorning", after module 8, add exactly four modules, chained 8 → 9 → 10 → 11 → 12 (I will rewire them later). Do not change modules 1–8. No routers, filters or error handlers. Do not run or activate. Stop and ask for connections. Rename each to its label.
 
-Module 9 – Google Sheets › Add a Row. Label: "9 Log run". Connection: my Google Sheets connection (ask me). Search method: Enter manually. Spreadsheet ID: [TYPE SHEET ID HERE YOURSELF]. Sheet name: SendLog. Table contains headers: Yes. Column "subscribers": map {{1.active_count}}. Leave date, batches, status and error EMPTY.
+Module 9 – Google Sheets › Add a Row. Label: "9 Log run". Connection: my Google Sheets connection (ask me). Search method: Enter manually. Spreadsheet ID: [TYPE SHEET ID HERE YOURSELF]. Sheet name: SendLog. Table contains headers: Yes. Column "subscribers": map {{1.`3`}}. Leave date, batches, status and error EMPTY.
 Module 10 – Slack › Create a Message. Label: "10 Report run". Connection: my Slack connection (ask me). Channel ID: [SLACK CHANNEL ID]. Text: placeholder (temporary; I will replace it).
-Module 11 – Google Sheets › Add a Row. Label: "11 Log skip". Connection: my Google Sheets connection (ask me). Search method: Enter manually. Spreadsheet ID: [TYPE SHEET ID HERE YOURSELF]. Sheet name: SendLog. Table contains headers: Yes. subscribers: map {{1.active_count}}. batches: 0. status: skipped. error: send disabled or no content. Leave date EMPTY.
+Module 11 – Google Sheets › Add a Row. Label: "11 Log skip". Connection: my Google Sheets connection (ask me). Search method: Enter manually. Spreadsheet ID: [TYPE SHEET ID HERE YOURSELF]. Sheet name: SendLog. Table contains headers: Yes. subscribers: map {{1.`3`}}. batches: 0. status: skipped. error: send disabled or no content. Leave date EMPTY.
 Module 12 – Slack › Create a Message. Label: "12 Alert skip". Connection: my Slack connection (ask me). Channel ID: [SLACK CHANNEL ID]. Text: MarketMorning SKIPPED: SEND_ENABLED off, or the Fed feed, BLS and CoinGecko all empty.
 ```
 **For you to do manually** (paste each value whole; don't combine pieces)
@@ -105,11 +105,11 @@ Module 12 – Slack › Create a Message. Label: "12 Alert skip". Connection: my
 - **Module 9, batches:** `{{if(6.id; 1; 0) + if(7.id; 1; 0) + if(8.id; 1; 0)}}`
 - **In Step 5c,** paste these two into module 9 and this text into module 10:
   - **Module 9, status:**
-    `{{if(1.batch_count = 0; "ok"; if((if(6.id; 1; 0) + if(7.id; 1; 0) + if(8.id; 1; 0)) = 0; "failed"; if((if(6.id; 1; 0) + if(7.id; 1; 0) + if(8.id; 1; 0)) < 1.batch_count; "partial"; if(5.source = "fallback"; "ok_no_ai"; "ok"))))}}`
+    `` {{if(1.`4` = 0; "ok"; if((if(6.id; 1; 0) + if(7.id; 1; 0) + if(8.id; 1; 0)) = 0; "failed"; if((if(6.id; 1; 0) + if(7.id; 1; 0) + if(8.id; 1; 0)) < 1.`4`; "partial"; if(5.source = "fallback"; "ok_no_ai"; "ok"))))}} ``
   - **Module 9, error:**
-    `{{if(5.source = "fallback"; "AI fallback. "; "")}}{{if(18.cpi; ""; "No BLS data. ")}}{{if(3.data.bitcoin.usd; ""; "No crypto data. ")}}{{if(length(ifempty(17.rss.channel.item; emptyarray)) = 0; "No Fed feed. "; "")}}{{if((if(6.id; 1; 0) + if(7.id; 1; 0) + if(8.id; 1; 0)) < 1.batch_count; "Batch failures. "; "")}}`
+    `` {{if(5.source = "fallback"; "AI fallback. "; "")}}{{if(18.cpi; ""; "No BLS data. ")}}{{if(3.data.bitcoin.usd; ""; "No crypto data. ")}}{{if(length(ifempty(17.rss.channel.item; emptyarray)) = 0; "No Fed feed. "; "")}}{{if((if(6.id; 1; 0) + if(7.id; 1; 0) + if(8.id; 1; 0)) < 1.`4`; "Batch failures. "; "")}} ``
   - **Module 10, text:**
-    `MarketMorning {{if(1.batch_count = 0; "ok"; if((if(6.id; 1; 0) + if(7.id; 1; 0) + if(8.id; 1; 0)) = 0; "failed"; if((if(6.id; 1; 0) + if(7.id; 1; 0) + if(8.id; 1; 0)) < 1.batch_count; "partial"; if(5.source = "fallback"; "ok_no_ai"; "ok"))))}}: attempted {{1.active_count}} subscribers, {{if(6.id; 1; 0) + if(7.id; 1; 0) + if(8.id; 1; 0)}}/{{1.batch_count}} batches delivered. {{if(5.source = "fallback"; "AI fallback. "; "")}}{{if(18.cpi; ""; "No BLS data. ")}}{{if(3.data.bitcoin.usd; ""; "No crypto data. ")}}{{if(length(ifempty(17.rss.channel.item; emptyarray)) = 0; "No Fed feed. "; "")}}`
+    `` MarketMorning {{if(1.`4` = 0; "ok"; if((if(6.id; 1; 0) + if(7.id; 1; 0) + if(8.id; 1; 0)) = 0; "failed"; if((if(6.id; 1; 0) + if(7.id; 1; 0) + if(8.id; 1; 0)) < 1.`4`; "partial"; if(5.source = "fallback"; "ok_no_ai"; "ok"))))}}: attempted {{1.`3`}} subscribers, {{if(6.id; 1; 0) + if(7.id; 1; 0) + if(8.id; 1; 0)}}/{{1.`4`}} batches delivered. {{if(5.source = "fallback"; "AI fallback. "; "")}}{{if(18.cpi; ""; "No BLS data. ")}}{{if(3.data.bitcoin.usd; ""; "No crypto data. ")}}{{if(length(ifempty(17.rss.channel.item; emptyarray)) = 0; "No Fed feed. "; "")}} ``
 - **If Gmail's output field isn't `id`** (for example `Message ID`), replace every `6.id`, `7.id` and `8.id` in modules 9 and 10 with that field.
 
 **Check after Maia:** IDs 1–8 unchanged; new IDs 9–12; sheet names; channel IDs typed by you.
@@ -126,7 +126,7 @@ Maia can't add error-handler routes, so do these by hand.
 3. Right-click **module 4** again and choose **Clone**. This creates exactly one module, ID 15.
    - Drag from module 14's right handle to the clone to link 14 → 15.
    - Label it "15 Gemini fallback model".
-   - URL `https://generativelanguage.googleapis.com/v1beta/models/{{1.gemini_fallback_model}}:generateContent`; timeout **40 s**.
+   - URL `` https://generativelanguage.googleapis.com/v1beta/models/{{1.`11`}}:generateContent ``; timeout **40 s**.
    - If Clone doesn't work, add **HTTP › Make a request** after 14 and copy module 4's settings by hand.
 4. Add **no** directives yet.
 
@@ -136,7 +136,7 @@ Maia can't add error-handler routes, so do these by hand.
 1. Right-click the **link 3 → 4**, choose **Add a module**, then pick **HTTP › Make a request**.
    - Label it "16 Fed speeches".
    - Method GET; URL `https://www.federalreserve.gov/feeds/speeches.xml`.
-   - Header `User-Agent` = `MarketMorning portfolio demo ({{1.site_url}})`.
+   - Header `User-Agent` = `` MarketMorning portfolio demo ({{1.`8`}}) ``.
    - Parse response **No**; timeout **20 s**; Evaluate all states as errors **Yes**.
 2. Right-click the **link 16 → 4**, choose **Add a module**, then pick **XML › Parse XML**.
    - Label it "17 Parse Fed RSS". XML: `{{16.data}}`.
@@ -165,7 +165,7 @@ If C22 shows a different path, apply its fallback, then run `node tools/preview-
    - If dragging doesn't link them, click R1's **+**, add any module, delete it, then drag that route's end onto 11.
 3. On route 2's wrench, choose **Set up a filter**: name "Skip", and tick **Fallback route**.
 4. On route 1 (R1 → 4), set the filter **"Content OK"**. It is one AND group with two conditions:
-   - `{{1.send_enabled}}` **Text: Equal to** `TRUE`
+   - `` {{1.`0`}} `` **Text: Equal to** `TRUE`
    - AND `{{length(ifempty(17.rss.channel.item; emptyarray)) + if(3.data.bitcoin.usd; 1; 0) + if(18.cpi; 1; 0)}}` **Numeric: Greater than** `0`
 
    (C13.)
@@ -175,7 +175,7 @@ If C22 shows a different path, apply its fallback, then run `node tools/preview-
 2. Unlink 6 → 7, 7 → 8 and 8 → 9.
 3. Connect R2 → 7, R2 → 8 and R2 → 9, in that order. The routes then run 6, 7, 8, 9; if not, use the router's **Order routes** option.
 4. Filters:
-   - "Batch 1" (R2 → 6): `{{1.batch_count}}` **Numeric: Greater than or equal to** `1`
+   - "Batch 1" (R2 → 6): `` {{1.`4`}} `` **Numeric: Greater than or equal to** `1`
    - "Batch 2" (R2 → 7): ≥ `2`
    - "Batch 3" (R2 → 8): ≥ `3`
    - R2 → 9: no filter
@@ -185,7 +185,7 @@ If C22 shows a different path, apply its fallback, then run `node tools/preview-
 | Where | How |
 |---|---|
 | Error handler of 2, 3, 16, 17, 18, 6, 7, 8, 9, 11 | Right-click the module, **Add error handler**, **Resume**, leave the output empty |
-| Error handler of 5 | Right-click, **Add error handler**, **Resume**. Set `source` = `fallback`, `summary` = `{{1.fallback_summary}}`, `crypto_note` empty |
+| Error handler of 5 | Right-click, **Add error handler**, **Resume**. Set `source` = `fallback`, `summary` = `` {{1.`10`}} ``, `crypto_note` empty |
 | Error handler of 10, 12, 13 | Right-click, **Add error handler**, **Ignore** |
 | After 13 (end of module 1's error route) | Click 13's right handle, **Flow control**, **Ignore** |
 | After 15 (end of module 4's error route) | Click 15's right handle, **Flow control**, **Resume**. This replaces module 4's output: set `data` = `{{15.data}}` |
