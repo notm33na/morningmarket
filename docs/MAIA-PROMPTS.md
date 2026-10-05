@@ -77,7 +77,7 @@ Module 5 – JSON › Parse JSON. Label: "5 Parse digest". JSON string: leave EM
 
 ## Step 3. Maia Prompt 3: modules 6–8
 ```
-In "MarketMorning", after module 5, add exactly three Gmail modules, chained 5 → 6 → 7 → 8 (I will rewire them later). Do not change modules 1–5. No routers, filters or error handlers. Do not run or activate. Stop and ask for the Gmail connection. Rename each to its label.
+In "MarketMorning", after the module labelled "5 Parse digest", add exactly three Gmail modules, chained one after another (I will rewire them later). Do not change the existing five modules. No routers, filters or error handlers. Do not run or activate. Stop and ask for the Gmail connection. Rename each to its label.
 
 For each of the three: Gmail › Send an Email. Connection: my Gmail connection (ask me). To: map {{2.`9`}}. Body type: Raw HTML. Content: placeholder (a temporary word; Make may not save an empty required field – I will replace it). Subject: placeholder. BCC: leave EMPTY.
 Labels, in creation order: "6 Send batch 1", "7 Send batch 2", "8 Send batch 3".
@@ -95,7 +95,7 @@ Labels, in creation order: "6 Send batch 1", "7 Send batch 2", "8 Send batch 3".
 
 ## Step 4. Maia Prompt 4: modules 9–12
 ```
-In "MarketMorning", after module 8, add exactly four modules, chained 8 → 9 → 10 → 11 → 12 (I will rewire them later). Do not change modules 1–8. No routers, filters or error handlers. Do not run or activate. Stop and ask for connections. Rename each to its label.
+In "MarketMorning", after the module labelled "8 Send batch 3", add exactly four modules, chained one after another (I will rewire them later). Do not change the existing eight modules. No routers, filters or error handlers. Do not run or activate. Stop and ask for connections. Rename each to its label.
 
 Module 9 – Google Sheets › Add a Row. Label: "9 Log run". Connection: my Google Sheets connection (ask me). Search method: Enter manually. Spreadsheet ID: [TYPE SHEET ID HERE YOURSELF]. Sheet name: SendLog. Table contains headers: Yes. Column "subscribers": map {{2.`3`}}. Leave date, batches, status and error EMPTY.
 Module 10 – Slack › Create a Message. Label: "10 Report run". Connection: my Slack connection (ask me). Channel ID: [SLACK CHANNEL ID]. Text: placeholder (temporary; I will replace it).
