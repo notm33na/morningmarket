@@ -1,0 +1,4143 @@
+{
+  "name": "MarketMorning",
+  "flow": [
+    {
+      "id": 2,
+      "module": "google-sheets:getSheetContent",
+      "version": 2,
+      "parameters": {
+        "__IMTCONN__": "{{CONNECTION}}"
+      },
+      "mapper": {
+        "range": "A2:L2",
+        "select": "map",
+        "sheetId": "Feed",
+        "spreadsheetId": "{{SHEET_ID}}",
+        "includesHeaders": false,
+        "valueRenderOption": "FORMATTED_VALUE",
+        "dateTimeRenderOption": "FORMATTED_STRING"
+      },
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 0,
+          "name": "1 Read Feed"
+        },
+        "setupValidation": {
+          "result": {
+            "valid": true,
+            "fields": []
+          },
+          "version": 1,
+          "configuration": "f6f369e8a4651d79"
+        },
+        "restore": {
+          "expect": {
+            "select": {
+              "label": "Enter manually"
+            },
+            "includesHeaders": {
+              "mode": "chose"
+            },
+            "valueRenderOption": {
+              "mode": "chose",
+              "label": "Formatted value"
+            },
+            "dateTimeRenderOption": {
+              "mode": "chose",
+              "label": "Formatted string"
+            }
+          },
+          "parameters": {
+            "__IMTCONN__": {
+              "data": {
+                "scoped": "true",
+                "connection": "{{CONNECTION}}"
+              },
+              "label": "{{CONNECTION}}"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "__IMTCONN__",
+            "type": "account:google",
+            "label": "Connection",
+            "required": true
+          }
+        ],
+        "expect": [
+          {
+            "name": "select",
+            "type": "select",
+            "label": "Search Method",
+            "required": true,
+            "validate": {
+              "enum": [
+                "list",
+                "fromAll",
+                "map"
+              ]
+            }
+          },
+          {
+            "name": "range",
+            "type": "text",
+            "label": "Range",
+            "required": true
+          },
+          {
+            "name": "includesHeaders",
+            "type": "boolean",
+            "label": "Table contains headers",
+            "required": true
+          },
+          {
+            "name": "valueRenderOption",
+            "type": "select",
+            "label": "Value render option",
+            "validate": {
+              "enum": [
+                "FORMATTED_VALUE",
+                "UNFORMATTED_VALUE",
+                "FORMULA"
+              ]
+            }
+          },
+          {
+            "name": "dateTimeRenderOption",
+            "type": "select",
+            "label": "Date and time render option",
+            "validate": {
+              "enum": [
+                "SERIAL_NUMBER",
+                "FORMATTED_STRING"
+              ]
+            }
+          },
+          {
+            "name": "spreadsheetId",
+            "type": "text",
+            "label": "Spreadsheet ID",
+            "required": true
+          },
+          {
+            "name": "sheetId",
+            "type": "text",
+            "label": "Sheet Name",
+            "required": true
+          }
+        ],
+        "interface": [
+          {
+            "name": "__IMTLENGTH__",
+            "type": "uinteger",
+            "label": "Total number of bundles"
+          },
+          {
+            "name": "__IMTINDEX__",
+            "type": "uinteger",
+            "label": "Bundle order position"
+          },
+          {
+            "name": "__ROW_NUMBER__",
+            "type": "number",
+            "label": "Row number"
+          },
+          {
+            "name": "__SPREADSHEET_ID__",
+            "type": "text",
+            "label": "Spreadsheet ID"
+          },
+          {
+            "name": "__SHEET__",
+            "type": "text",
+            "label": "Sheet"
+          },
+          {
+            "name": "0",
+            "type": "text",
+            "label": "A"
+          },
+          {
+            "name": "1",
+            "type": "text",
+            "label": "B"
+          },
+          {
+            "name": "2",
+            "type": "text",
+            "label": "C"
+          },
+          {
+            "name": "3",
+            "type": "text",
+            "label": "D"
+          },
+          {
+            "name": "4",
+            "type": "text",
+            "label": "E"
+          },
+          {
+            "name": "5",
+            "type": "text",
+            "label": "F"
+          },
+          {
+            "name": "6",
+            "type": "text",
+            "label": "G"
+          },
+          {
+            "name": "7",
+            "type": "text",
+            "label": "H"
+          },
+          {
+            "name": "8",
+            "type": "text",
+            "label": "I"
+          },
+          {
+            "name": "9",
+            "type": "text",
+            "label": "J"
+          },
+          {
+            "name": "10",
+            "type": "text",
+            "label": "K"
+          },
+          {
+            "name": "11",
+            "type": "text",
+            "label": "L"
+          }
+        ]
+      },
+      "onerror": [
+        {
+          "id": 14,
+          "module": "slack:CreateMessage",
+          "version": 4,
+          "parameters": {
+            "__IMTCONN__": "{{CONNECTION}}"
+          },
+          "mapper": {
+            "text": "MarketMorning FAILED: Sheet read: {{error.message}}",
+            "parse": false,
+            "mrkdwn": true,
+            "channel": "{{SLACK_ID}}",
+            "channelType": "public",
+            "channelWType": "list",
+            "unfurl_links": false,
+            "unfurl_media": false
+          },
+          "metadata": {
+            "designer": {
+              "x": 0,
+              "y": 300,
+              "name": "13 Alert sheet fail"
+            },
+            "setupValidation": {
+              "result": {
+                "valid": true,
+                "fields": []
+              },
+              "version": 1,
+              "configuration": "61a02447532e1bb8"
+            },
+            "restore": {
+              "expect": {
+                "parse": {
+                  "mode": "chose"
+                },
+                "mrkdwn": {
+                  "mode": "chose"
+                },
+                "channel": {
+                  "mode": "chose",
+                  "label": "marketmorning-alerts"
+                },
+                "link_names": {
+                  "mode": "chose"
+                },
+                "channelType": {
+                  "label": "Public channel"
+                },
+                "channelWType": {
+                  "label": "Select from the list"
+                },
+                "unfurl_links": {
+                  "mode": "chose"
+                },
+                "unfurl_media": {
+                  "mode": "chose"
+                },
+                "reply_broadcast": {
+                  "mode": "chose"
+                }
+              },
+              "parameters": {
+                "__IMTCONN__": {
+                  "data": {
+                    "scoped": "true",
+                    "connection": "{{CONNECTION}}"
+                  },
+                  "label": "{{CONNECTION}}"
+                }
+              }
+            },
+            "parameters": [
+              {
+                "name": "__IMTCONN__",
+                "type": "account:slack2,slack3",
+                "label": "Connection",
+                "required": true
+              }
+            ],
+            "expect": [
+              {
+                "name": "channelWType",
+                "type": "select",
+                "label": "Enter a channel ID or name",
+                "required": true,
+                "validate": {
+                  "enum": [
+                    "manualy",
+                    "list"
+                  ]
+                }
+              },
+              {
+                "name": "text",
+                "type": "text",
+                "label": "Text"
+              },
+              {
+                "name": "blocks",
+                "type": "text",
+                "label": "Blocks"
+              },
+              {
+                "name": "thread_ts",
+                "type": "text",
+                "label": "Thread message ID (time stamp)"
+              },
+              {
+                "name": "reply_broadcast",
+                "type": "boolean",
+                "label": "Reply broadcast"
+              },
+              {
+                "name": "link_names",
+                "type": "boolean",
+                "label": "Link names"
+              },
+              {
+                "name": "parse",
+                "type": "boolean",
+                "label": "Parse message text"
+              },
+              {
+                "name": "mrkdwn",
+                "type": "boolean",
+                "label": "Use markdown"
+              },
+              {
+                "name": "unfurl_links",
+                "type": "boolean",
+                "label": "Unfurl primarily text-based content"
+              },
+              {
+                "name": "unfurl_media",
+                "type": "boolean",
+                "label": "Unfurl media content"
+              },
+              {
+                "name": "icon_emoji",
+                "type": "text",
+                "label": "Icon emoji"
+              },
+              {
+                "name": "icon_url",
+                "type": "url",
+                "label": "Icon url"
+              },
+              {
+                "name": "username",
+                "type": "text",
+                "label": "User name"
+              },
+              {
+                "name": "channelType",
+                "type": "select",
+                "label": "Channel type",
+                "required": true,
+                "validate": {
+                  "enum": [
+                    "public",
+                    "private",
+                    "im",
+                    "mpim"
+                  ]
+                }
+              },
+              {
+                "name": "channel",
+                "type": "select",
+                "label": "Public channel",
+                "required": true
+              }
+            ]
+          },
+          "onerror": [
+            {
+              "id": 30,
+              "module": "builtin:Ignore",
+              "version": 1,
+              "metadata": {
+                "designer": {
+                  "x": 0,
+                  "y": 450
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": 31,
+          "module": "builtin:Ignore",
+          "version": 1,
+          "metadata": {
+            "designer": {
+              "x": 300,
+              "y": 300
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "tlsType": "",
+        "authenticationType": "noAuth"
+      },
+      "mapper": {
+        "url": "https://api.bls.gov/publicAPI/v2/timeseries/data/",
+        "method": "post",
+        "headers": [
+          {
+            "name": "User-Agent",
+            "value": "MarketMorning portfolio demo"
+          }
+        ],
+        "timeout": "20",
+        "contentType": "json",
+        "inputMethod": "jsonString",
+        "shareCookies": false,
+        "parseResponse": true,
+        "allowRedirects": true,
+        "stopOnHttpError": true,
+        "jsonStringBodyContent": "{\"seriesid\":[\"CUSR0000SA0\",\"LNS14000000\",\"CES0000000001\",\"WPSFD4\"],\"latest\":true,\"calculations\":true,\"registrationkey\":\"{{REDACTED}}\"}",
+        "requestCompressedContent": true
+      },
+      "metadata": {
+        "designer": {
+          "x": 300,
+          "y": 0,
+          "name": "2 BLS latest numbers"
+        },
+        "setupValidation": {
+          "result": {
+            "valid": true,
+            "fields": []
+          },
+          "version": 1,
+          "configuration": "d5f7ede34b9337e5"
+        },
+        "restore": {
+          "expect": {
+            "method": {
+              "mode": "chose",
+              "label": "POST"
+            },
+            "headers": {
+              "mode": "chose",
+              "items": [
+                null
+              ]
+            },
+            "contentType": {
+              "label": "application/jsonEnter data in the JSON format, as a string or using a data structure."
+            },
+            "inputMethod": {
+              "label": "JSON stringEnter the JSON body as a raw text string. If values contain JSON reserved characters, you must escape them manually."
+            },
+            "shareCookies": {
+              "mode": "chose"
+            },
+            "parseResponse": {
+              "mode": "chose"
+            },
+            "allowRedirects": {
+              "mode": "chose"
+            },
+            "paginationType": {
+              "label": "Empty"
+            },
+            "queryParameters": {
+              "mode": "chose"
+            },
+            "stopOnHttpError": {
+              "mode": "chose"
+            },
+            "requestCompressedContent": {
+              "mode": "chose"
+            }
+          },
+          "parameters": {
+            "tlsType": {
+              "label": "Empty"
+            },
+            "authenticationType": {
+              "label": "No authenticationUse when no credentials are required for the request."
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "authenticationType",
+            "type": "select",
+            "label": "Authentication type",
+            "required": true,
+            "validate": {
+              "enum": [
+                "noAuth",
+                "apiKey",
+                "basicAuth",
+                "oAuth"
+              ]
+            }
+          },
+          {
+            "name": "tlsType",
+            "type": "select",
+            "label": "Transport layer security (TLS)",
+            "validate": {
+              "enum": [
+                "mTls",
+                "tls"
+              ]
+            }
+          },
+          {
+            "name": "proxyKeychain",
+            "type": "keychain:proxy",
+            "label": "Proxy"
+          }
+        ],
+        "expect": [
+          {
+            "name": "url",
+            "type": "url",
+            "label": "URL",
+            "required": true
+          },
+          {
+            "name": "method",
+            "type": "select",
+            "label": "Method",
+            "required": true,
+            "validate": {
+              "enum": [
+                "get",
+                "head",
+                "post",
+                "put",
+                "patch",
+                "delete",
+                "options"
+              ]
+            }
+          },
+          {
+            "name": "headers",
+            "spec": {
+              "name": "value",
+              "spec": [
+                {
+                  "name": "name",
+                  "type": "text",
+                  "label": "Name",
+                  "required": true,
+                  "validate": {
+                    "pattern": "^[-!#$%&'*+.^_`|~0-9A-Za-z]+$"
+                  }
+                },
+                {
+                  "name": "value",
+                  "type": "text",
+                  "label": "Value"
+                }
+              ],
+              "type": "collection",
+              "label": "Header"
+            },
+            "type": "array",
+            "label": "Headers"
+          },
+          {
+            "name": "queryParameters",
+            "spec": {
+              "name": "value",
+              "spec": [
+                {
+                  "name": "name",
+                  "type": "text",
+                  "label": "Name",
+                  "required": true
+                },
+                {
+                  "name": "value",
+                  "type": "text",
+                  "label": "Value"
+                }
+              ],
+              "type": "collection",
+              "label": "Parameter"
+            },
+            "type": "array",
+            "label": "Query parameters"
+          },
+          {
+            "name": "contentType",
+            "type": "select",
+            "label": "Body content type",
+            "validate": {
+              "enum": [
+                "json",
+                "multipart",
+                "urlEncoded",
+                "custom"
+              ]
+            }
+          },
+          {
+            "name": "parseResponse",
+            "type": "boolean",
+            "label": "Parse response",
+            "required": true
+          },
+          {
+            "name": "stopOnHttpError",
+            "type": "boolean",
+            "label": "Return error if HTTP request fails",
+            "required": true
+          },
+          {
+            "name": "timeout",
+            "type": "uinteger",
+            "label": "Timeout",
+            "validate": {
+              "max": 300,
+              "min": 1
+            }
+          },
+          {
+            "name": "allowRedirects",
+            "type": "boolean",
+            "label": "Allow redirects",
+            "required": true
+          },
+          {
+            "name": "shareCookies",
+            "type": "boolean",
+            "label": "Share cookies with other HTTP modules",
+            "required": true
+          },
+          {
+            "name": "requestCompressedContent",
+            "type": "boolean",
+            "label": "Request compressed content",
+            "required": true
+          },
+          {
+            "name": "inputMethod",
+            "type": "select",
+            "label": "Body input method",
+            "required": true,
+            "validate": {
+              "enum": [
+                "dataStructure",
+                "jsonString"
+              ]
+            }
+          },
+          {
+            "name": "jsonStringBodyContent",
+            "type": "text",
+            "label": "Body content",
+            "required": true
+          },
+          {
+            "name": "paginationType",
+            "type": "select",
+            "label": "Pagination type",
+            "validate": {
+              "enum": [
+                "offsetBased",
+                "pageBased",
+                "urlBased",
+                "tokenBased"
+              ]
+            }
+          }
+        ],
+        "interface": [
+          {
+            "name": "data",
+            "type": "any",
+            "label": "Data"
+          },
+          {
+            "name": "statusCode",
+            "type": "number",
+            "label": "Status Code"
+          },
+          {
+            "name": "headers",
+            "spec": [
+              {
+                "name": "content-length",
+                "type": "text",
+                "label": "Content-Length"
+              },
+              {
+                "name": "content-encoding",
+                "type": "text",
+                "label": "Content-Encoding"
+              },
+              {
+                "name": "content-type",
+                "type": "text",
+                "label": "Content-Type"
+              },
+              {
+                "name": "server",
+                "type": "text",
+                "label": "Server"
+              },
+              {
+                "name": "cache-control",
+                "type": "text",
+                "label": "Cache-Control"
+              },
+              {
+                "name": "set-cookie",
+                "spec": {
+                  "type": "text"
+                },
+                "type": "array",
+                "label": "Set-Cookie"
+              }
+            ],
+            "type": "collection",
+            "label": "Headers"
+          }
+        ]
+      },
+      "onerror": [
+        {
+          "id": 32,
+          "module": "builtin:Resume",
+          "version": 1,
+          "metadata": {
+            "designer": {
+              "x": 300,
+              "y": 150
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "tlsType": "",
+        "apiKeyKeychain": "{{CONNECTION}}",
+        "authenticationType": "apiKey"
+      },
+      "mapper": {
+        "url": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true",
+        "method": "get",
+        "timeout": "20",
+        "shareCookies": false,
+        "parseResponse": true,
+        "allowRedirects": true,
+        "stopOnHttpError": true,
+        "requestCompressedContent": true
+      },
+      "metadata": {
+        "designer": {
+          "x": 600,
+          "y": 0,
+          "name": "3 CoinGecko prices"
+        },
+        "setupValidation": {
+          "result": {
+            "valid": true,
+            "fields": []
+          },
+          "version": 1,
+          "configuration": "e678ce5d1d3b44d9"
+        },
+        "restore": {
+          "expect": {
+            "method": {
+              "mode": "chose",
+              "label": "GET"
+            },
+            "headers": {
+              "mode": "chose"
+            },
+            "contentType": {
+              "label": "Empty"
+            },
+            "shareCookies": {
+              "mode": "chose"
+            },
+            "parseResponse": {
+              "mode": "chose"
+            },
+            "allowRedirects": {
+              "mode": "chose"
+            },
+            "paginationType": {
+              "label": "Empty"
+            },
+            "queryParameters": {
+              "mode": "chose"
+            },
+            "stopOnHttpError": {
+              "mode": "chose"
+            },
+            "requestCompressedContent": {
+              "mode": "chose"
+            }
+          },
+          "parameters": {
+            "tlsType": {
+              "label": "Empty"
+            },
+            "apiKeyKeychain": {
+              "label": "{{CONNECTION}}"
+            },
+            "authenticationType": {
+              "label": "API keyUse when the service requires an API key in the header or query parameters."
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "authenticationType",
+            "type": "select",
+            "label": "Authentication type",
+            "required": true,
+            "validate": {
+              "enum": [
+                "noAuth",
+                "apiKey",
+                "basicAuth",
+                "oAuth"
+              ]
+            }
+          },
+          {
+            "name": "tlsType",
+            "type": "select",
+            "label": "Transport layer security (TLS)",
+            "validate": {
+              "enum": [
+                "mTls",
+                "tls"
+              ]
+            }
+          },
+          {
+            "name": "proxyKeychain",
+            "type": "keychain:proxy",
+            "label": "Proxy"
+          },
+          {
+            "name": "apiKeyKeychain",
+            "type": "keychain:apikeyauth",
+            "label": "Credentials",
+            "required": true
+          }
+        ],
+        "expect": [
+          {
+            "name": "url",
+            "type": "url",
+            "label": "URL",
+            "required": true
+          },
+          {
+            "name": "method",
+            "type": "select",
+            "label": "Method",
+            "required": true,
+            "validate": {
+              "enum": [
+                "get",
+                "head",
+                "post",
+                "put",
+                "patch",
+                "delete",
+                "options"
+              ]
+            }
+          },
+          {
+            "name": "headers",
+            "spec": {
+              "name": "value",
+              "spec": [
+                {
+                  "name": "name",
+                  "type": "text",
+                  "label": "Name",
+                  "required": true,
+                  "validate": {
+                    "pattern": "^[-!#$%&'*+.^_`|~0-9A-Za-z]+$"
+                  }
+                },
+                {
+                  "name": "value",
+                  "type": "text",
+                  "label": "Value"
+                }
+              ],
+              "type": "collection",
+              "label": "Header"
+            },
+            "type": "array",
+            "label": "Headers"
+          },
+          {
+            "name": "queryParameters",
+            "spec": {
+              "name": "value",
+              "spec": [
+                {
+                  "name": "name",
+                  "type": "text",
+                  "label": "Name",
+                  "required": true
+                },
+                {
+                  "name": "value",
+                  "type": "text",
+                  "label": "Value"
+                }
+              ],
+              "type": "collection",
+              "label": "Parameter"
+            },
+            "type": "array",
+            "label": "Query parameters"
+          },
+          {
+            "name": "contentType",
+            "type": "select",
+            "label": "Body content type",
+            "validate": {
+              "enum": [
+                "json",
+                "multipart",
+                "urlEncoded",
+                "custom"
+              ]
+            }
+          },
+          {
+            "name": "parseResponse",
+            "type": "boolean",
+            "label": "Parse response",
+            "required": true
+          },
+          {
+            "name": "stopOnHttpError",
+            "type": "boolean",
+            "label": "Return error if HTTP request fails",
+            "required": true
+          },
+          {
+            "name": "timeout",
+            "type": "uinteger",
+            "label": "Timeout",
+            "validate": {
+              "max": 300,
+              "min": 1
+            }
+          },
+          {
+            "name": "allowRedirects",
+            "type": "boolean",
+            "label": "Allow redirects",
+            "required": true
+          },
+          {
+            "name": "shareCookies",
+            "type": "boolean",
+            "label": "Share cookies with other HTTP modules",
+            "required": true
+          },
+          {
+            "name": "requestCompressedContent",
+            "type": "boolean",
+            "label": "Request compressed content",
+            "required": true
+          },
+          {
+            "name": "paginationType",
+            "type": "select",
+            "label": "Pagination type",
+            "validate": {
+              "enum": [
+                "offsetBased",
+                "pageBased",
+                "urlBased",
+                "tokenBased"
+              ]
+            }
+          }
+        ],
+        "interface": [
+          {
+            "name": "data",
+            "type": "any",
+            "label": "Data"
+          },
+          {
+            "name": "statusCode",
+            "type": "number",
+            "label": "Status Code"
+          },
+          {
+            "name": "headers",
+            "spec": [
+              {
+                "name": "content-length",
+                "type": "text",
+                "label": "Content-Length"
+              },
+              {
+                "name": "content-encoding",
+                "type": "text",
+                "label": "Content-Encoding"
+              },
+              {
+                "name": "content-type",
+                "type": "text",
+                "label": "Content-Type"
+              },
+              {
+                "name": "server",
+                "type": "text",
+                "label": "Server"
+              },
+              {
+                "name": "cache-control",
+                "type": "text",
+                "label": "Cache-Control"
+              },
+              {
+                "name": "set-cookie",
+                "spec": {
+                  "type": "text"
+                },
+                "type": "array",
+                "label": "Set-Cookie"
+              }
+            ],
+            "type": "collection",
+            "label": "Headers"
+          }
+        ]
+      },
+      "onerror": [
+        {
+          "id": 33,
+          "module": "builtin:Resume",
+          "version": 1,
+          "metadata": {
+            "designer": {
+              "x": 600,
+              "y": 150
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "tlsType": "",
+        "authenticationType": "noAuth"
+      },
+      "mapper": {
+        "url": "https://www.federalreserve.gov/feeds/speeches.xml",
+        "method": "get",
+        "headers": [
+          {
+            "name": "User-Agent",
+            "value": "MarketMorning portfolio demo ({{2.`8`}})"
+          }
+        ],
+        "timeout": "20",
+        "shareCookies": false,
+        "parseResponse": false,
+        "allowRedirects": true,
+        "stopOnHttpError": true,
+        "requestCompressedContent": true
+      },
+      "metadata": {
+        "designer": {
+          "x": 900,
+          "y": 0,
+          "name": "16 Fed speeches"
+        },
+        "setupValidation": {
+          "result": {
+            "valid": true,
+            "fields": []
+          },
+          "version": 1,
+          "configuration": "59ec424e472ad259"
+        },
+        "restore": {
+          "expect": {
+            "method": {
+              "mode": "chose",
+              "label": "GET"
+            },
+            "headers": {
+              "mode": "chose",
+              "items": [
+                null
+              ]
+            },
+            "contentType": {
+              "label": "Empty"
+            },
+            "shareCookies": {
+              "mode": "chose"
+            },
+            "parseResponse": {
+              "mode": "chose"
+            },
+            "allowRedirects": {
+              "mode": "chose"
+            },
+            "queryParameters": {
+              "mode": "chose"
+            },
+            "stopOnHttpError": {
+              "mode": "chose"
+            },
+            "requestCompressedContent": {
+              "mode": "chose"
+            }
+          },
+          "parameters": {
+            "tlsType": {
+              "label": "Empty"
+            },
+            "authenticationType": {
+              "label": "No authenticationUse when no credentials are required for the request."
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "authenticationType",
+            "type": "select",
+            "label": "Authentication type",
+            "required": true,
+            "validate": {
+              "enum": [
+                "noAuth",
+                "apiKey",
+                "basicAuth",
+                "oAuth"
+              ]
+            }
+          },
+          {
+            "name": "tlsType",
+            "type": "select",
+            "label": "Transport layer security (TLS)",
+            "validate": {
+              "enum": [
+                "mTls",
+                "tls"
+              ]
+            }
+          },
+          {
+            "name": "proxyKeychain",
+            "type": "keychain:proxy",
+            "label": "Proxy"
+          }
+        ],
+        "expect": [
+          {
+            "name": "url",
+            "type": "url",
+            "label": "URL",
+            "required": true
+          },
+          {
+            "name": "method",
+            "type": "select",
+            "label": "Method",
+            "required": true,
+            "validate": {
+              "enum": [
+                "get",
+                "head",
+                "post",
+                "put",
+                "patch",
+                "delete",
+                "options"
+              ]
+            }
+          },
+          {
+            "name": "headers",
+            "spec": {
+              "name": "value",
+              "spec": [
+                {
+                  "name": "name",
+                  "type": "text",
+                  "label": "Name",
+                  "required": true,
+                  "validate": {
+                    "pattern": "^[-!#$%&'*+.^_`|~0-9A-Za-z]+$"
+                  }
+                },
+                {
+                  "name": "value",
+                  "type": "text",
+                  "label": "Value"
+                }
+              ],
+              "type": "collection",
+              "label": "Header"
+            },
+            "type": "array",
+            "label": "Headers"
+          },
+          {
+            "name": "queryParameters",
+            "spec": {
+              "name": "value",
+              "spec": [
+                {
+                  "name": "name",
+                  "type": "text",
+                  "label": "Name",
+                  "required": true
+                },
+                {
+                  "name": "value",
+                  "type": "text",
+                  "label": "Value"
+                }
+              ],
+              "type": "collection",
+              "label": "Parameter"
+            },
+            "type": "array",
+            "label": "Query parameters"
+          },
+          {
+            "name": "contentType",
+            "type": "select",
+            "label": "Body content type",
+            "validate": {
+              "enum": [
+                "json",
+                "multipart",
+                "urlEncoded",
+                "custom"
+              ]
+            }
+          },
+          {
+            "name": "parseResponse",
+            "type": "boolean",
+            "label": "Parse response",
+            "required": true
+          },
+          {
+            "name": "stopOnHttpError",
+            "type": "boolean",
+            "label": "Return error if HTTP request fails",
+            "required": true
+          },
+          {
+            "name": "timeout",
+            "type": "uinteger",
+            "label": "Timeout",
+            "validate": {
+              "max": 300,
+              "min": 1
+            }
+          },
+          {
+            "name": "allowRedirects",
+            "type": "boolean",
+            "label": "Allow redirects",
+            "required": true
+          },
+          {
+            "name": "shareCookies",
+            "type": "boolean",
+            "label": "Share cookies with other HTTP modules",
+            "required": true
+          },
+          {
+            "name": "requestCompressedContent",
+            "type": "boolean",
+            "label": "Request compressed content",
+            "required": true
+          }
+        ],
+        "interface": [
+          {
+            "name": "data",
+            "type": "any",
+            "label": "Data"
+          },
+          {
+            "name": "statusCode",
+            "type": "number",
+            "label": "Status Code"
+          },
+          {
+            "name": "headers",
+            "spec": [
+              {
+                "name": "content-length",
+                "type": "text",
+                "label": "Content-Length"
+              },
+              {
+                "name": "content-encoding",
+                "type": "text",
+                "label": "Content-Encoding"
+              },
+              {
+                "name": "content-type",
+                "type": "text",
+                "label": "Content-Type"
+              },
+              {
+                "name": "server",
+                "type": "text",
+                "label": "Server"
+              },
+              {
+                "name": "cache-control",
+                "type": "text",
+                "label": "Cache-Control"
+              },
+              {
+                "name": "set-cookie",
+                "spec": {
+                  "type": "text"
+                },
+                "type": "array",
+                "label": "Set-Cookie"
+              }
+            ],
+            "type": "collection",
+            "label": "Headers"
+          }
+        ]
+      },
+      "onerror": [
+        {
+          "id": 34,
+          "module": "builtin:Resume",
+          "version": 1,
+          "metadata": {
+            "designer": {
+              "x": 900,
+              "y": 150
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "module": "xml:ParseXML",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "xml": "{{17.data}}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 1200,
+          "y": 0,
+          "name": "17 Parse Fed RSS"
+        }
+      },
+      "onerror": [
+        {
+          "id": 35,
+          "module": "builtin:Resume",
+          "version": 1,
+          "metadata": {
+            "designer": {
+              "x": 1200,
+              "y": 150
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "module": "builtin:BasicRouter",
+      "version": 1,
+      "mapper": null,
+      "metadata": {
+        "designer": {
+          "x": 1500,
+          "y": 0,
+          "name": "R1 Content check"
+        }
+      },
+      "routes": [
+        {
+          "flow": [
+            {
+              "id": 5,
+              "module": "http:MakeRequest",
+              "version": 4,
+              "parameters": {
+                "tlsType": "",
+                "apiKeyKeychain": "{{CONNECTION}}",
+                "authenticationType": "apiKey"
+              },
+              "filter": {
+                "name": "Content OK",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{2.`0`}}",
+                      "b": "TRUE",
+                      "o": "text:equal"
+                    },
+                    {
+                      "a": "{{length(ifempty(18.rss.channel[1].item; emptyarray)) + if(4.data.bitcoin.usd; 1; 0) + if(3.data.Results.series[1].data[1].value; 1; 0)}}",
+                      "b": "0",
+                      "o": "number:greater"
+                    }
+                  ]
+                ]
+              },
+              "mapper": {
+                "url": "https://generativelanguage.googleapis.com/v1beta/models/{{2.`1`}}:generateContent",
+                "method": "post",
+                "timeout": "60",
+                "contentType": "json",
+                "inputMethod": "jsonString",
+                "shareCookies": false,
+                "parseResponse": true,
+                "allowRedirects": true,
+                "stopOnHttpError": true,
+                "jsonStringBodyContent": "{\"systemInstruction\":{\"parts\":[{\"text\":\"You write the text parts of MarketMorning, a daily email about the Federal Reserve, official US economic data and crypto for general readers. English only. Factual, neutral tone.\\n\\nINPUT: plain text with FED SPEECHES (date | speaker, title; official Federal Reserve speeches, possibly from earlier days), LATEST US DATA (official BLS figures; each value includes its month, (p) means preliminary) and CRYPTO (symbol | price USD | 24h change %, with an as-of time). Any line may be blank.\\n\\nRULES\\n1. The only numbers you may write are: crypto prices and 24h changes from CRYPTO, BLS values from LATEST US DATA, and Fed speech dates (and any numbers inside a speech title) from FED SPEECHES, each with exactly the digits given. You may write a sign as rose/fell or up/down. Never calculate, round, compare or estimate.\\n2. Do not mention stock markets, stock indexes, companies or bonds: there is no such data in the input.\\n3. Never write URLs, email addresses, or facts that are not in the input.\\n4. Mention a Fed speech only by the speaker name, topic and date exactly as given in its line, with no added titles such as Governor or Chair (for example: Jefferson spoke on The U.S. Economy and Monetary Policy (Thu, 1 Oct 2026)). Never describe what the speaker said beyond the title.\\n5. Never imply that a speech or a data release caused a price move or another data value. Report each item as a separate fact. Do not join two items with linking words such as as, after, because, amid, driven by or thanks to. Writing \\\"spoke on <title>\\\" is fine.\\n6. No advice or predictions: never say buy, sell, hold, should, expect, likely, target or forecast. Do not interpret whether data is good or bad.\\n7. If a line is blank, do not mention it. If a whole section is blank, leave it out of the summary and use the other sections.\\n\\nOUTPUT (JSON matching the schema)\\n- summary: exactly 3 sentences, in this order when available: (1) the most recent Fed speeches; (2) the latest US data; (3) crypto. If a section is blank, cover the others in 3 sentences.\\n- crypto_note: 1 sentence on BTC and ETH using their numbers, or an empty string if CRYPTO is blank.\\nDo not use double quotes inside any string.\"}]},\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"FED SPEECHES (date | speaker, title):\\n{{if(18.rss.channel[1].item[1].link[1]; trim(substring(18.rss.channel[1].item[1].pubDate[1]; 0; 16)); \"\")}}{{if(18.rss.channel[1].item[1].link[1]; \" | \"; \"\")}}{{replace(replace(replace(escapeHTML(18.rss.channel[1].item[1].title[1]); \"&quot;\"; \"'\"); \"&#39;\"; \"'\"); \"&amp;\"; \"&\")}}\\n{{if(18.rss.channel[1].item[2].link[1]; trim(substring(18.rss.channel[1].item[2].pubDate[1]; 0; 16)); \"\")}}{{if(18.rss.channel[1].item[2].link[1]; \" | \"; \"\")}}{{replace(replace(replace(escapeHTML(18.rss.channel[1].item[2].title[1]); \"&quot;\"; \"'\"); \"&#39;\"; \"'\"); \"&amp;\"; \"&\")}}\\n{{if(18.rss.channel[1].item[3].link[1]; trim(substring(18.rss.channel[1].item[3].pubDate[1]; 0; 16)); \"\")}}{{if(18.rss.channel[1].item[3].link[1]; \" | \"; \"\")}}{{replace(replace(replace(escapeHTML(18.rss.channel[1].item[3].title[1]); \"&quot;\"; \"'\"); \"&#39;\"; \"'\"); \"&amp;\"; \"&\")}}\\nLATEST US DATA (official BLS figures; value and month):\\n{{if(3.data.Results.series[1].data[1].value; \"CPI, 1-month change | \"; \"\")}}{{if(3.data.Results.series[1].data[1].value; if(3.data.Results.series[1].data[1].calculations.pct_changes.`1` >= 0; \"+\"; \"\"); \"\")}}{{if(3.data.Results.series[1].data[1].value; 3.data.Results.series[1].data[1].calculations.pct_changes.`1`; \"\")}}{{if(3.data.Results.series[1].data[1].value; \"%\"; \"\")}}{{if(3.data.Results.series[1].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[1].data[1].value; 3.data.Results.series[1].data[1].periodName; \"\")}}{{if(3.data.Results.series[1].data[1].value; space; \"\")}}{{if(3.data.Results.series[1].data[1].value; 3.data.Results.series[1].data[1].year; \"\")}}{{if(3.data.Results.series[1].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}\\n{{if(3.data.Results.series[2].data[1].value; \"Unemployment rate | \"; \"\")}}{{if(3.data.Results.series[2].data[1].value; 3.data.Results.series[2].data[1].value; \"\")}}{{if(3.data.Results.series[2].data[1].value; \"%\"; \"\")}}{{if(3.data.Results.series[2].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[2].data[1].value; 3.data.Results.series[2].data[1].periodName; \"\")}}{{if(3.data.Results.series[2].data[1].value; space; \"\")}}{{if(3.data.Results.series[2].data[1].value; 3.data.Results.series[2].data[1].year; \"\")}}{{if(3.data.Results.series[2].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}\\n{{if(3.data.Results.series[3].data[1].value; \"Payroll employment, 1-month change | \"; \"\")}}{{if(3.data.Results.series[3].data[1].value; if(3.data.Results.series[3].data[1].calculations.net_changes.`1` >= 0; \"+\"; \"\"); \"\")}}{{if(3.data.Results.series[3].data[1].value; formatNumber(3.data.Results.series[3].data[1].calculations.net_changes.`1` * 1000; 0; \".\"; \",\"); \"\")}}{{if(3.data.Results.series[3].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[3].data[1].value; 3.data.Results.series[3].data[1].periodName; \"\")}}{{if(3.data.Results.series[3].data[1].value; space; \"\")}}{{if(3.data.Results.series[3].data[1].value; 3.data.Results.series[3].data[1].year; \"\")}}{{if(3.data.Results.series[3].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}\\n{{if(3.data.Results.series[4].data[1].value; \"PPI final demand, 1-month change | \"; \"\")}}{{if(3.data.Results.series[4].data[1].value; if(3.data.Results.series[4].data[1].calculations.pct_changes.`1` >= 0; \"+\"; \"\"); \"\")}}{{if(3.data.Results.series[4].data[1].value; 3.data.Results.series[4].data[1].calculations.pct_changes.`1`; \"\")}}{{if(3.data.Results.series[4].data[1].value; \"%\"; \"\")}}{{if(3.data.Results.series[4].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[4].data[1].value; 3.data.Results.series[4].data[1].periodName; \"\")}}{{if(3.data.Results.series[4].data[1].value; space; \"\")}}{{if(3.data.Results.series[4].data[1].value; 3.data.Results.series[4].data[1].year; \"\")}}{{if(3.data.Results.series[4].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}\\nCRYPTO (symbol | price USD | 24h change %), as of {{if(4.data.bitcoin.usd; formatDate(parseDate(ifempty(4.data.bitcoin.last_updated_at; 0); \"X\"); \"ddd MMM D, YYYY h:mm A\"; \"America/New_York\"); \"unavailable\")}}:\\nBTC | {{formatNumber(4.data.bitcoin.usd; 2; \".\"; \",\")}} | {{if(4.data.bitcoin.usd; if(4.data.bitcoin.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.bitcoin.usd_24h_change; 2; \".\"; \",\")}}\\nETH | {{formatNumber(4.data.ethereum.usd; 2; \".\"; \",\")}} | {{if(4.data.ethereum.usd; if(4.data.ethereum.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.ethereum.usd_24h_change; 2; \".\"; \",\")}}\\nSOL | {{formatNumber(4.data.solana.usd; 2; \".\"; \",\")}} | {{if(4.data.solana.usd; if(4.data.solana.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.solana.usd_24h_change; 2; \".\"; \",\")}}\\nXRP | {{formatNumber(4.data.ripple.usd; 4; \".\"; \",\")}} | {{if(4.data.ripple.usd; if(4.data.ripple.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.ripple.usd_24h_change; 2; \".\"; \",\")}}\\nBNB | {{formatNumber(4.data.binancecoin.usd; 2; \".\"; \",\")}} | {{if(4.data.binancecoin.usd; if(4.data.binancecoin.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.binancecoin.usd_24h_change; 2; \".\"; \",\")}}\\nDOGE | {{formatNumber(4.data.dogecoin.usd; 4; \".\"; \",\")}} | {{if(4.data.dogecoin.usd; if(4.data.dogecoin.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.dogecoin.usd_24h_change; 2; \".\"; \",\")}}\"}]}],\"generationConfig\":{\"responseMimeType\":\"application/json\",\"responseJsonSchema\":{\"type\":\"object\",\"properties\":{\"summary\":{\"type\":\"string\",\"description\":\"Exactly 3 sentences.\"},\"crypto_note\":{\"type\":\"string\",\"description\":\"1 sentence, or empty if CRYPTO is blank.\"}},\"required\":[\"summary\",\"crypto_note\"],\"additionalProperties\":false}}}",
+                "requestCompressedContent": true
+              },
+              "metadata": {
+                "designer": {
+                  "x": 1800,
+                  "y": -150,
+                  "name": "4 Gemini digest"
+                },
+                "setupValidation": {
+                  "result": {
+                    "valid": true,
+                    "fields": []
+                  },
+                  "version": 1,
+                  "configuration": "6bb9eea68c1231b4"
+                },
+                "restore": {
+                  "expect": {
+                    "method": {
+                      "mode": "chose",
+                      "label": "POST"
+                    },
+                    "headers": {
+                      "mode": "chose"
+                    },
+                    "contentType": {
+                      "label": "application/jsonEnter data in the JSON format, as a string or using a data structure."
+                    },
+                    "inputMethod": {
+                      "label": "JSON stringEnter the JSON body as a raw text string. If values contain JSON reserved characters, you must escape them manually."
+                    },
+                    "shareCookies": {
+                      "mode": "chose"
+                    },
+                    "parseResponse": {
+                      "mode": "chose"
+                    },
+                    "allowRedirects": {
+                      "mode": "chose"
+                    },
+                    "paginationType": {
+                      "label": "Empty"
+                    },
+                    "queryParameters": {
+                      "mode": "chose"
+                    },
+                    "stopOnHttpError": {
+                      "mode": "chose"
+                    },
+                    "requestCompressedContent": {
+                      "mode": "chose"
+                    }
+                  },
+                  "parameters": {
+                    "tlsType": {
+                      "label": "Empty"
+                    },
+                    "apiKeyKeychain": {
+                      "label": "{{CONNECTION}}"
+                    },
+                    "authenticationType": {
+                      "label": "API keyUse when the service requires an API key in the header or query parameters."
+                    }
+                  }
+                },
+                "parameters": [
+                  {
+                    "name": "authenticationType",
+                    "type": "select",
+                    "label": "Authentication type",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "noAuth",
+                        "apiKey",
+                        "basicAuth",
+                        "oAuth"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "tlsType",
+                    "type": "select",
+                    "label": "Transport layer security (TLS)",
+                    "validate": {
+                      "enum": [
+                        "mTls",
+                        "tls"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "proxyKeychain",
+                    "type": "keychain:proxy",
+                    "label": "Proxy"
+                  },
+                  {
+                    "name": "apiKeyKeychain",
+                    "type": "keychain:apikeyauth",
+                    "label": "Credentials",
+                    "required": true
+                  }
+                ],
+                "expect": [
+                  {
+                    "name": "url",
+                    "type": "url",
+                    "label": "URL",
+                    "required": true
+                  },
+                  {
+                    "name": "method",
+                    "type": "select",
+                    "label": "Method",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "get",
+                        "head",
+                        "post",
+                        "put",
+                        "patch",
+                        "delete",
+                        "options"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "headers",
+                    "spec": {
+                      "name": "value",
+                      "spec": [
+                        {
+                          "name": "name",
+                          "type": "text",
+                          "label": "Name",
+                          "required": true,
+                          "validate": {
+                            "pattern": "^[-!#$%&'*+.^_`|~0-9A-Za-z]+$"
+                          }
+                        },
+                        {
+                          "name": "value",
+                          "type": "text",
+                          "label": "Value"
+                        }
+                      ],
+                      "type": "collection",
+                      "label": "Header"
+                    },
+                    "type": "array",
+                    "label": "Headers"
+                  },
+                  {
+                    "name": "queryParameters",
+                    "spec": {
+                      "name": "value",
+                      "spec": [
+                        {
+                          "name": "name",
+                          "type": "text",
+                          "label": "Name",
+                          "required": true
+                        },
+                        {
+                          "name": "value",
+                          "type": "text",
+                          "label": "Value"
+                        }
+                      ],
+                      "type": "collection",
+                      "label": "Parameter"
+                    },
+                    "type": "array",
+                    "label": "Query parameters"
+                  },
+                  {
+                    "name": "contentType",
+                    "type": "select",
+                    "label": "Body content type",
+                    "validate": {
+                      "enum": [
+                        "json",
+                        "multipart",
+                        "urlEncoded",
+                        "custom"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "parseResponse",
+                    "type": "boolean",
+                    "label": "Parse response",
+                    "required": true
+                  },
+                  {
+                    "name": "stopOnHttpError",
+                    "type": "boolean",
+                    "label": "Return error if HTTP request fails",
+                    "required": true
+                  },
+                  {
+                    "name": "timeout",
+                    "type": "uinteger",
+                    "label": "Timeout",
+                    "validate": {
+                      "max": 300,
+                      "min": 1
+                    }
+                  },
+                  {
+                    "name": "allowRedirects",
+                    "type": "boolean",
+                    "label": "Allow redirects",
+                    "required": true
+                  },
+                  {
+                    "name": "shareCookies",
+                    "type": "boolean",
+                    "label": "Share cookies with other HTTP modules",
+                    "required": true
+                  },
+                  {
+                    "name": "requestCompressedContent",
+                    "type": "boolean",
+                    "label": "Request compressed content",
+                    "required": true
+                  },
+                  {
+                    "name": "inputMethod",
+                    "type": "select",
+                    "label": "Body input method",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "dataStructure",
+                        "jsonString"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "jsonStringBodyContent",
+                    "type": "text",
+                    "label": "Body content",
+                    "required": true
+                  },
+                  {
+                    "name": "paginationType",
+                    "type": "select",
+                    "label": "Pagination type",
+                    "validate": {
+                      "enum": [
+                        "offsetBased",
+                        "pageBased",
+                        "urlBased",
+                        "tokenBased"
+                      ]
+                    }
+                  }
+                ],
+                "interface": [
+                  {
+                    "name": "data",
+                    "type": "any",
+                    "label": "Data"
+                  },
+                  {
+                    "name": "statusCode",
+                    "type": "number",
+                    "label": "Status Code"
+                  },
+                  {
+                    "name": "headers",
+                    "spec": [
+                      {
+                        "name": "content-length",
+                        "type": "text",
+                        "label": "Content-Length"
+                      },
+                      {
+                        "name": "content-encoding",
+                        "type": "text",
+                        "label": "Content-Encoding"
+                      },
+                      {
+                        "name": "content-type",
+                        "type": "text",
+                        "label": "Content-Type"
+                      },
+                      {
+                        "name": "server",
+                        "type": "text",
+                        "label": "Server"
+                      },
+                      {
+                        "name": "cache-control",
+                        "type": "text",
+                        "label": "Cache-Control"
+                      },
+                      {
+                        "name": "set-cookie",
+                        "spec": {
+                          "type": "text"
+                        },
+                        "type": "array",
+                        "label": "Set-Cookie"
+                      }
+                    ],
+                    "type": "collection",
+                    "label": "Headers"
+                  }
+                ]
+              },
+              "onerror": [
+                {
+                  "id": 15,
+                  "module": "util:FunctionSleep",
+                  "version": 1,
+                  "parameters": {},
+                  "mapper": {
+                    "duration": 10
+                  },
+                  "metadata": {
+                    "designer": {
+                      "x": 1800,
+                      "y": -450,
+                      "name": "14 Wait before retry"
+                    }
+                  }
+                },
+                {
+                  "id": 16,
+                  "module": "http:MakeRequest",
+                  "version": 4,
+                  "parameters": {
+                    "tlsType": "",
+                    "apiKeyKeychain": "{{CONNECTION}}",
+                    "authenticationType": "apiKey"
+                  },
+                  "mapper": {
+                    "url": "https://generativelanguage.googleapis.com/v1beta/models/{{2.`11`}}:generateContent",
+                    "method": "post",
+                    "timeout": "40",
+                    "contentType": "json",
+                    "inputMethod": "jsonString",
+                    "shareCookies": false,
+                    "parseResponse": true,
+                    "allowRedirects": true,
+                    "stopOnHttpError": true,
+                    "jsonStringBodyContent": "{\"systemInstruction\":{\"parts\":[{\"text\":\"You write the text parts of MarketMorning, a daily email about the Federal Reserve, official US economic data and crypto for general readers. English only. Factual, neutral tone.\\n\\nINPUT: plain text with FED SPEECHES (date | speaker, title; official Federal Reserve speeches, possibly from earlier days), LATEST US DATA (official BLS figures; each value includes its month, (p) means preliminary) and CRYPTO (symbol | price USD | 24h change %, with an as-of time). Any line may be blank.\\n\\nRULES\\n1. The only numbers you may write are: crypto prices and 24h changes from CRYPTO, BLS values from LATEST US DATA, and Fed speech dates (and any numbers inside a speech title) from FED SPEECHES, each with exactly the digits given. You may write a sign as rose/fell or up/down. Never calculate, round, compare or estimate.\\n2. Do not mention stock markets, stock indexes, companies or bonds: there is no such data in the input.\\n3. Never write URLs, email addresses, or facts that are not in the input.\\n4. Mention a Fed speech only by the speaker name, topic and date exactly as given in its line, with no added titles such as Governor or Chair (for example: Jefferson spoke on The U.S. Economy and Monetary Policy (Thu, 1 Oct 2026)). Never describe what the speaker said beyond the title.\\n5. Never imply that a speech or a data release caused a price move or another data value. Report each item as a separate fact. Do not join two items with linking words such as as, after, because, amid, driven by or thanks to. Writing \\\"spoke on <title>\\\" is fine.\\n6. No advice or predictions: never say buy, sell, hold, should, expect, likely, target or forecast. Do not interpret whether data is good or bad.\\n7. If a line is blank, do not mention it. If a whole section is blank, leave it out of the summary and use the other sections.\\n\\nOUTPUT (JSON matching the schema)\\n- summary: exactly 3 sentences, in this order when available: (1) the most recent Fed speeches; (2) the latest US data; (3) crypto. If a section is blank, cover the others in 3 sentences.\\n- crypto_note: 1 sentence on BTC and ETH using their numbers, or an empty string if CRYPTO is blank.\\nDo not use double quotes inside any string.\"}]},\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"FED SPEECHES (date | speaker, title):\\n{{if(18.rss.channel[1].item[1].link[1]; trim(substring(18.rss.channel[1].item[1].pubDate[1]; 0; 16)); \"\")}}{{if(18.rss.channel[1].item[1].link[1]; \" | \"; \"\")}}{{replace(replace(replace(escapeHTML(18.rss.channel[1].item[1].title[1]); \"&quot;\"; \"'\"); \"&#39;\"; \"'\"); \"&amp;\"; \"&\")}}\\n{{if(18.rss.channel[1].item[2].link[1]; trim(substring(18.rss.channel[1].item[2].pubDate[1]; 0; 16)); \"\")}}{{if(18.rss.channel[1].item[2].link[1]; \" | \"; \"\")}}{{replace(replace(replace(escapeHTML(18.rss.channel[1].item[2].title[1]); \"&quot;\"; \"'\"); \"&#39;\"; \"'\"); \"&amp;\"; \"&\")}}\\n{{if(18.rss.channel[1].item[3].link[1]; trim(substring(18.rss.channel[1].item[3].pubDate[1]; 0; 16)); \"\")}}{{if(18.rss.channel[1].item[3].link[1]; \" | \"; \"\")}}{{replace(replace(replace(escapeHTML(18.rss.channel[1].item[3].title[1]); \"&quot;\"; \"'\"); \"&#39;\"; \"'\"); \"&amp;\"; \"&\")}}\\nLATEST US DATA (official BLS figures; value and month):\\n{{if(3.data.Results.series[1].data[1].value; \"CPI, 1-month change | \"; \"\")}}{{if(3.data.Results.series[1].data[1].value; if(3.data.Results.series[1].data[1].calculations.pct_changes.`1` >= 0; \"+\"; \"\"); \"\")}}{{if(3.data.Results.series[1].data[1].value; 3.data.Results.series[1].data[1].calculations.pct_changes.`1`; \"\")}}{{if(3.data.Results.series[1].data[1].value; \"%\"; \"\")}}{{if(3.data.Results.series[1].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[1].data[1].value; 3.data.Results.series[1].data[1].periodName; \"\")}}{{if(3.data.Results.series[1].data[1].value; space; \"\")}}{{if(3.data.Results.series[1].data[1].value; 3.data.Results.series[1].data[1].year; \"\")}}{{if(3.data.Results.series[1].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}\\n{{if(3.data.Results.series[2].data[1].value; \"Unemployment rate | \"; \"\")}}{{if(3.data.Results.series[2].data[1].value; 3.data.Results.series[2].data[1].value; \"\")}}{{if(3.data.Results.series[2].data[1].value; \"%\"; \"\")}}{{if(3.data.Results.series[2].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[2].data[1].value; 3.data.Results.series[2].data[1].periodName; \"\")}}{{if(3.data.Results.series[2].data[1].value; space; \"\")}}{{if(3.data.Results.series[2].data[1].value; 3.data.Results.series[2].data[1].year; \"\")}}{{if(3.data.Results.series[2].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}\\n{{if(3.data.Results.series[3].data[1].value; \"Payroll employment, 1-month change | \"; \"\")}}{{if(3.data.Results.series[3].data[1].value; if(3.data.Results.series[3].data[1].calculations.net_changes.`1` >= 0; \"+\"; \"\"); \"\")}}{{if(3.data.Results.series[3].data[1].value; formatNumber(3.data.Results.series[3].data[1].calculations.net_changes.`1` * 1000; 0; \".\"; \",\"); \"\")}}{{if(3.data.Results.series[3].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[3].data[1].value; 3.data.Results.series[3].data[1].periodName; \"\")}}{{if(3.data.Results.series[3].data[1].value; space; \"\")}}{{if(3.data.Results.series[3].data[1].value; 3.data.Results.series[3].data[1].year; \"\")}}{{if(3.data.Results.series[3].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}\\n{{if(3.data.Results.series[4].data[1].value; \"PPI final demand, 1-month change | \"; \"\")}}{{if(3.data.Results.series[4].data[1].value; if(3.data.Results.series[4].data[1].calculations.pct_changes.`1` >= 0; \"+\"; \"\"); \"\")}}{{if(3.data.Results.series[4].data[1].value; 3.data.Results.series[4].data[1].calculations.pct_changes.`1`; \"\")}}{{if(3.data.Results.series[4].data[1].value; \"%\"; \"\")}}{{if(3.data.Results.series[4].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[4].data[1].value; 3.data.Results.series[4].data[1].periodName; \"\")}}{{if(3.data.Results.series[4].data[1].value; space; \"\")}}{{if(3.data.Results.series[4].data[1].value; 3.data.Results.series[4].data[1].year; \"\")}}{{if(3.data.Results.series[4].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}\\nCRYPTO (symbol | price USD | 24h change %), as of {{if(4.data.bitcoin.usd; formatDate(parseDate(ifempty(4.data.bitcoin.last_updated_at; 0); \"X\"); \"ddd MMM D, YYYY h:mm A\"; \"America/New_York\"); \"unavailable\")}}:\\nBTC | {{formatNumber(4.data.bitcoin.usd; 2; \".\"; \",\")}} | {{if(4.data.bitcoin.usd; if(4.data.bitcoin.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.bitcoin.usd_24h_change; 2; \".\"; \",\")}}\\nETH | {{formatNumber(4.data.ethereum.usd; 2; \".\"; \",\")}} | {{if(4.data.ethereum.usd; if(4.data.ethereum.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.ethereum.usd_24h_change; 2; \".\"; \",\")}}\\nSOL | {{formatNumber(4.data.solana.usd; 2; \".\"; \",\")}} | {{if(4.data.solana.usd; if(4.data.solana.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.solana.usd_24h_change; 2; \".\"; \",\")}}\\nXRP | {{formatNumber(4.data.ripple.usd; 4; \".\"; \",\")}} | {{if(4.data.ripple.usd; if(4.data.ripple.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.ripple.usd_24h_change; 2; \".\"; \",\")}}\\nBNB | {{formatNumber(4.data.binancecoin.usd; 2; \".\"; \",\")}} | {{if(4.data.binancecoin.usd; if(4.data.binancecoin.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.binancecoin.usd_24h_change; 2; \".\"; \",\")}}\\nDOGE | {{formatNumber(4.data.dogecoin.usd; 4; \".\"; \",\")}} | {{if(4.data.dogecoin.usd; if(4.data.dogecoin.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.dogecoin.usd_24h_change; 2; \".\"; \",\")}}\"}]}],\"generationConfig\":{\"responseMimeType\":\"application/json\",\"responseJsonSchema\":{\"type\":\"object\",\"properties\":{\"summary\":{\"type\":\"string\",\"description\":\"Exactly 3 sentences.\"},\"crypto_note\":{\"type\":\"string\",\"description\":\"1 sentence, or empty if CRYPTO is blank.\"}},\"required\":[\"summary\",\"crypto_note\"],\"additionalProperties\":false}}}",
+                    "requestCompressedContent": true
+                  },
+                  "metadata": {
+                    "designer": {
+                      "x": 2100,
+                      "y": -450,
+                      "name": "15 Gemini fallback model"
+                    },
+                    "setupValidation": {
+                      "result": {
+                        "valid": true,
+                        "fields": []
+                      },
+                      "version": 1,
+                      "configuration": "e5ee6f2d2c40ed41"
+                    },
+                    "restore": {
+                      "expect": {
+                        "method": {
+                          "mode": "chose",
+                          "label": "POST"
+                        },
+                        "headers": {
+                          "mode": "chose"
+                        },
+                        "contentType": {
+                          "label": "application/jsonEnter data in the JSON format, as a string or using a data structure."
+                        },
+                        "inputMethod": {
+                          "label": "JSON stringEnter the JSON body as a raw text string. If values contain JSON reserved characters, you must escape them manually."
+                        },
+                        "shareCookies": {
+                          "mode": "chose"
+                        },
+                        "parseResponse": {
+                          "mode": "chose"
+                        },
+                        "allowRedirects": {
+                          "mode": "chose"
+                        },
+                        "paginationType": {
+                          "label": "Empty"
+                        },
+                        "queryParameters": {
+                          "mode": "chose"
+                        },
+                        "stopOnHttpError": {
+                          "mode": "chose"
+                        },
+                        "requestCompressedContent": {
+                          "mode": "chose"
+                        }
+                      },
+                      "parameters": {
+                        "tlsType": {
+                          "label": "Empty"
+                        },
+                        "apiKeyKeychain": {
+                          "label": "{{CONNECTION}}"
+                        },
+                        "authenticationType": {
+                          "label": "API keyUse when the service requires an API key in the header or query parameters."
+                        }
+                      }
+                    },
+                    "parameters": [
+                      {
+                        "name": "authenticationType",
+                        "type": "select",
+                        "label": "Authentication type",
+                        "required": true,
+                        "validate": {
+                          "enum": [
+                            "noAuth",
+                            "apiKey",
+                            "basicAuth",
+                            "oAuth"
+                          ]
+                        }
+                      },
+                      {
+                        "name": "tlsType",
+                        "type": "select",
+                        "label": "Transport layer security (TLS)",
+                        "validate": {
+                          "enum": [
+                            "mTls",
+                            "tls"
+                          ]
+                        }
+                      },
+                      {
+                        "name": "proxyKeychain",
+                        "type": "keychain:proxy",
+                        "label": "Proxy"
+                      },
+                      {
+                        "name": "apiKeyKeychain",
+                        "type": "keychain:apikeyauth",
+                        "label": "Credentials",
+                        "required": true
+                      }
+                    ],
+                    "expect": [
+                      {
+                        "name": "url",
+                        "type": "url",
+                        "label": "URL",
+                        "required": true
+                      },
+                      {
+                        "name": "method",
+                        "type": "select",
+                        "label": "Method",
+                        "required": true,
+                        "validate": {
+                          "enum": [
+                            "get",
+                            "head",
+                            "post",
+                            "put",
+                            "patch",
+                            "delete",
+                            "options"
+                          ]
+                        }
+                      },
+                      {
+                        "name": "headers",
+                        "spec": {
+                          "name": "value",
+                          "spec": [
+                            {
+                              "name": "name",
+                              "type": "text",
+                              "label": "Name",
+                              "required": true,
+                              "validate": {
+                                "pattern": "^[-!#$%&'*+.^_`|~0-9A-Za-z]+$"
+                              }
+                            },
+                            {
+                              "name": "value",
+                              "type": "text",
+                              "label": "Value"
+                            }
+                          ],
+                          "type": "collection",
+                          "label": "Header"
+                        },
+                        "type": "array",
+                        "label": "Headers"
+                      },
+                      {
+                        "name": "queryParameters",
+                        "spec": {
+                          "name": "value",
+                          "spec": [
+                            {
+                              "name": "name",
+                              "type": "text",
+                              "label": "Name",
+                              "required": true
+                            },
+                            {
+                              "name": "value",
+                              "type": "text",
+                              "label": "Value"
+                            }
+                          ],
+                          "type": "collection",
+                          "label": "Parameter"
+                        },
+                        "type": "array",
+                        "label": "Query parameters"
+                      },
+                      {
+                        "name": "contentType",
+                        "type": "select",
+                        "label": "Body content type",
+                        "validate": {
+                          "enum": [
+                            "json",
+                            "multipart",
+                            "urlEncoded",
+                            "custom"
+                          ]
+                        }
+                      },
+                      {
+                        "name": "parseResponse",
+                        "type": "boolean",
+                        "label": "Parse response",
+                        "required": true
+                      },
+                      {
+                        "name": "stopOnHttpError",
+                        "type": "boolean",
+                        "label": "Return error if HTTP request fails",
+                        "required": true
+                      },
+                      {
+                        "name": "timeout",
+                        "type": "uinteger",
+                        "label": "Timeout",
+                        "validate": {
+                          "max": 300,
+                          "min": 1
+                        }
+                      },
+                      {
+                        "name": "allowRedirects",
+                        "type": "boolean",
+                        "label": "Allow redirects",
+                        "required": true
+                      },
+                      {
+                        "name": "shareCookies",
+                        "type": "boolean",
+                        "label": "Share cookies with other HTTP modules",
+                        "required": true
+                      },
+                      {
+                        "name": "requestCompressedContent",
+                        "type": "boolean",
+                        "label": "Request compressed content",
+                        "required": true
+                      },
+                      {
+                        "name": "inputMethod",
+                        "type": "select",
+                        "label": "Body input method",
+                        "required": true,
+                        "validate": {
+                          "enum": [
+                            "dataStructure",
+                            "jsonString"
+                          ]
+                        }
+                      },
+                      {
+                        "name": "jsonStringBodyContent",
+                        "type": "text",
+                        "label": "Body content",
+                        "required": true
+                      },
+                      {
+                        "name": "paginationType",
+                        "type": "select",
+                        "label": "Pagination type",
+                        "validate": {
+                          "enum": [
+                            "offsetBased",
+                            "pageBased",
+                            "urlBased",
+                            "tokenBased"
+                          ]
+                        }
+                      }
+                    ],
+                    "interface": [
+                      {
+                        "name": "data",
+                        "type": "any",
+                        "label": "Data"
+                      },
+                      {
+                        "name": "statusCode",
+                        "type": "number",
+                        "label": "Status Code"
+                      },
+                      {
+                        "name": "headers",
+                        "spec": [
+                          {
+                            "name": "content-length",
+                            "type": "text",
+                            "label": "Content-Length"
+                          },
+                          {
+                            "name": "content-encoding",
+                            "type": "text",
+                            "label": "Content-Encoding"
+                          },
+                          {
+                            "name": "content-type",
+                            "type": "text",
+                            "label": "Content-Type"
+                          },
+                          {
+                            "name": "server",
+                            "type": "text",
+                            "label": "Server"
+                          },
+                          {
+                            "name": "cache-control",
+                            "type": "text",
+                            "label": "Cache-Control"
+                          },
+                          {
+                            "name": "set-cookie",
+                            "spec": {
+                              "type": "text"
+                            },
+                            "type": "array",
+                            "label": "Set-Cookie"
+                          }
+                        ],
+                        "type": "collection",
+                        "label": "Headers"
+                      }
+                    ]
+                  },
+                  "onerror": [
+                    {
+                      "id": 20,
+                      "module": "builtin:Resume",
+                      "version": 1,
+                      "metadata": {
+                        "designer": {
+                          "x": 2100,
+                          "y": -600
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": 21,
+                  "module": "builtin:Resume",
+                  "version": 1,
+                  "parameters": {},
+                  "mapper": {
+                    "data": "{{16.data}}"
+                  },
+                  "metadata": {
+                    "designer": {
+                      "x": 2400,
+                      "y": -450
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": 6,
+              "module": "json:ParseJSON",
+              "version": 1,
+              "parameters": {},
+              "mapper": {
+                "json": "{{ifempty(5.data.candidates[1].content.parts[1].text; 2.`2`)}}"
+              },
+              "metadata": {
+                "designer": {
+                  "x": 2100,
+                  "y": -150,
+                  "name": "5 Parse digest"
+                }
+              },
+              "onerror": [
+                {
+                  "id": 22,
+                  "module": "builtin:Resume",
+                  "version": 1,
+                  "parameters": {},
+                  "mapper": {
+                    "source": "fallback",
+                    "summary": "{{2.`10`}}",
+                    "crypto_note": ""
+                  },
+                  "metadata": {
+                    "designer": {
+                      "x": 2100,
+                      "y": 0
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": 7,
+              "module": "google-email:sendAnEmail",
+              "version": 4,
+              "parameters": {
+                "__IMTCONN__": "{{CONNECTION}}"
+              },
+              "mapper": {
+                "to": [
+                  "{{2.`9`}}"
+                ],
+                "bcc": "{{split(2.`5`; \",\")}}",
+                "content": "<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f4f5f7\">\n<tr><td align=\"center\" style=\"padding:16px 8px\">\n<table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;width:100%;background:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#111827\">\n  <tr><td style=\"padding:20px 24px 4px 24px\">\n    <div style=\"font-size:22px;font-weight:bold\">MarketMorning</div>\n    <div style=\"font-size:13px;color:#6b7280\">{{formatDate(now; \"dddd, MMMM D, YYYY\"; \"America/New_York\")}} · the Fed, US data and crypto</div>\n  </td></tr>\n\n  <tr><td style=\"padding:12px 24px\">{{escapeHTML(6.summary)}}</td></tr>\n\n  {{if(3.data.Results.series[1].data[1].value; \"<tr><td style='padding:12px 24px 0 24px;font-size:17px;font-weight:bold'>Latest US economic data</td></tr><tr><td style='padding:4px 24px'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='font-size:14px'>\"; \"\")}}\n      {{if(3.data.Results.series[1].data[1].value; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee'>Inflation (CPI), 1-month change</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>\"; \"\")}}{{if(3.data.Results.series[1].data[1].value; if(3.data.Results.series[1].data[1].calculations.pct_changes.`1` >= 0; \"+\"; \"\"); \"\")}}{{if(3.data.Results.series[1].data[1].value; 3.data.Results.series[1].data[1].calculations.pct_changes.`1`; \"\")}}{{if(3.data.Results.series[1].data[1].value; \"%\"; \"\")}}{{if(3.data.Results.series[1].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[1].data[1].value; 3.data.Results.series[1].data[1].periodName; \"\")}}{{if(3.data.Results.series[1].data[1].value; space; \"\")}}{{if(3.data.Results.series[1].data[1].value; 3.data.Results.series[1].data[1].year; \"\")}}{{if(3.data.Results.series[1].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}{{if(3.data.Results.series[1].data[1].value; \"</td></tr>\"; \"\")}}\n      {{if(3.data.Results.series[2].data[1].value; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee'>Unemployment rate</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>\"; \"\")}}{{if(3.data.Results.series[2].data[1].value; 3.data.Results.series[2].data[1].value; \"\")}}{{if(3.data.Results.series[2].data[1].value; \"%\"; \"\")}}{{if(3.data.Results.series[2].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[2].data[1].value; 3.data.Results.series[2].data[1].periodName; \"\")}}{{if(3.data.Results.series[2].data[1].value; space; \"\")}}{{if(3.data.Results.series[2].data[1].value; 3.data.Results.series[2].data[1].year; \"\")}}{{if(3.data.Results.series[2].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}{{if(3.data.Results.series[2].data[1].value; \"</td></tr>\"; \"\")}}\n      {{if(3.data.Results.series[3].data[1].value; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee'>Payroll jobs, 1-month change</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>\"; \"\")}}{{if(3.data.Results.series[3].data[1].value; if(3.data.Results.series[3].data[1].calculations.net_changes.`1` >= 0; \"+\"; \"\"); \"\")}}{{if(3.data.Results.series[3].data[1].value; formatNumber(3.data.Results.series[3].data[1].calculations.net_changes.`1` * 1000; 0; \".\"; \",\"); \"\")}}{{if(3.data.Results.series[3].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[3].data[1].value; 3.data.Results.series[3].data[1].periodName; \"\")}}{{if(3.data.Results.series[3].data[1].value; space; \"\")}}{{if(3.data.Results.series[3].data[1].value; 3.data.Results.series[3].data[1].year; \"\")}}{{if(3.data.Results.series[3].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}{{if(3.data.Results.series[3].data[1].value; \"</td></tr>\"; \"\")}}\n      {{if(3.data.Results.series[4].data[1].value; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee'>Producer prices (PPI), 1-month change</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>\"; \"\")}}{{if(3.data.Results.series[4].data[1].value; if(3.data.Results.series[4].data[1].calculations.pct_changes.`1` >= 0; \"+\"; \"\"); \"\")}}{{if(3.data.Results.series[4].data[1].value; 3.data.Results.series[4].data[1].calculations.pct_changes.`1`; \"\")}}{{if(3.data.Results.series[4].data[1].value; \"%\"; \"\")}}{{if(3.data.Results.series[4].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[4].data[1].value; 3.data.Results.series[4].data[1].periodName; \"\")}}{{if(3.data.Results.series[4].data[1].value; space; \"\")}}{{if(3.data.Results.series[4].data[1].value; 3.data.Results.series[4].data[1].year; \"\")}}{{if(3.data.Results.series[4].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}{{if(3.data.Results.series[4].data[1].value; \"</td></tr>\"; \"\")}}\n  {{if(3.data.Results.series[1].data[1].value; \"</table><p style='margin:4px 0;font-size:12px;color:#6b7280'>Latest release for each; (p) = preliminary. Source: <a href='https://www.bls.gov/' style='color:#6b7280'>U.S. Bureau of Labor Statistics</a>, retrieved \"; \"\")}}{{if(3.data.Results.series[1].data[1].value; formatDate(now; \"MMM D, YYYY\"; \"America/New_York\"); \"\")}}{{if(3.data.Results.series[1].data[1].value; \" via the BLS Public Data API. BLS.gov cannot vouch for the data or analyses derived from these data after the data have been retrieved from BLS.gov. MarketMorning is not affiliated with BLS.</p></td></tr>\"; \"\")}}\n\n  {{if(length(ifempty(18.rss.channel[1].item; emptyarray)) > 0; \"<tr><td style='padding:12px 24px 0 24px;font-size:17px;font-weight:bold'>From the Federal Reserve</td></tr><tr><td style='padding:4px 24px'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='font-size:14px'>\"; \"\")}}\n      {{if(18.rss.channel[1].item[1].link[1]; \"<tr><td style='padding:3px 0'><span style='color:#6b7280'>\"; \"\")}}{{if(18.rss.channel[1].item[1].link[1]; trim(substring(18.rss.channel[1].item[1].pubDate[1]; 5; 16)); \"\")}}{{if(18.rss.channel[1].item[1].link[1]; \"</span> <a href='\"; \"\")}}{{replace(18.rss.channel[1].item[1].link[1]; \"'\"; \"%27\")}}{{if(18.rss.channel[1].item[1].link[1]; \"' style='color:#1a56db'>\"; \"\")}}{{escapeHTML(18.rss.channel[1].item[1].title[1])}}{{if(18.rss.channel[1].item[1].link[1]; \"</a></td></tr>\"; \"\")}}\n      {{if(18.rss.channel[1].item[2].link[1]; \"<tr><td style='padding:3px 0'><span style='color:#6b7280'>\"; \"\")}}{{if(18.rss.channel[1].item[2].link[1]; trim(substring(18.rss.channel[1].item[2].pubDate[1]; 5; 16)); \"\")}}{{if(18.rss.channel[1].item[2].link[1]; \"</span> <a href='\"; \"\")}}{{replace(18.rss.channel[1].item[2].link[1]; \"'\"; \"%27\")}}{{if(18.rss.channel[1].item[2].link[1]; \"' style='color:#1a56db'>\"; \"\")}}{{escapeHTML(18.rss.channel[1].item[2].title[1])}}{{if(18.rss.channel[1].item[2].link[1]; \"</a></td></tr>\"; \"\")}}\n      {{if(18.rss.channel[1].item[3].link[1]; \"<tr><td style='padding:3px 0'><span style='color:#6b7280'>\"; \"\")}}{{if(18.rss.channel[1].item[3].link[1]; trim(substring(18.rss.channel[1].item[3].pubDate[1]; 5; 16)); \"\")}}{{if(18.rss.channel[1].item[3].link[1]; \"</span> <a href='\"; \"\")}}{{replace(18.rss.channel[1].item[3].link[1]; \"'\"; \"%27\")}}{{if(18.rss.channel[1].item[3].link[1]; \"' style='color:#1a56db'>\"; \"\")}}{{escapeHTML(18.rss.channel[1].item[3].title[1])}}{{if(18.rss.channel[1].item[3].link[1]; \"</a></td></tr>\"; \"\")}}\n  {{if(length(ifempty(18.rss.channel[1].item; emptyarray)) > 0; \"</table><p style='margin:4px 0;font-size:12px;color:#6b7280'>Latest speeches. Source: <a href='https://www.federalreserve.gov/' style='color:#6b7280'>Federal Reserve Board</a>. MarketMorning is not affiliated with the Federal Reserve.</p></td></tr>\"; \"\")}}\n\n  <tr><td style=\"padding:12px 24px 0 24px;font-size:17px;font-weight:bold\">Crypto</td></tr>\n  <tr><td style=\"padding:2px 24px;font-size:13px;color:#6b7280\">{{if(4.data.bitcoin.usd; \"Prices as of \"; \"Crypto prices unavailable today.\")}}{{if(4.data.bitcoin.usd; formatDate(parseDate(ifempty(4.data.bitcoin.last_updated_at; 0); \"X\"); \"ddd MMM D, YYYY h:mm A\"; \"America/New_York\"); \"\")}}{{if(4.data.bitcoin.usd; \" ET · 24h change\"; \"\")}}</td></tr>\n  <tr><td style=\"padding:4px 24px\">\n    {{if(4.data.bitcoin.usd; \"<table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='font-size:14px'>\"; \"\")}}\n      {{if(4.data.bitcoin.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>BTC</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.bitcoin.usd; 2; \".\"; \",\")}}{{if(4.data.bitcoin.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.bitcoin.usd; if(4.data.bitcoin.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.bitcoin.usd; \"'>\"; \"\")}}{{if(4.data.bitcoin.usd; if(4.data.bitcoin.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.bitcoin.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.bitcoin.usd; \"%</td></tr>\"; \"\")}}\n      {{if(4.data.ethereum.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>ETH</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.ethereum.usd; 2; \".\"; \",\")}}{{if(4.data.ethereum.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.ethereum.usd; if(4.data.ethereum.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.ethereum.usd; \"'>\"; \"\")}}{{if(4.data.ethereum.usd; if(4.data.ethereum.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.ethereum.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.ethereum.usd; \"%</td></tr>\"; \"\")}}\n      {{if(4.data.solana.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>SOL</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.solana.usd; 2; \".\"; \",\")}}{{if(4.data.solana.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.solana.usd; if(4.data.solana.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.solana.usd; \"'>\"; \"\")}}{{if(4.data.solana.usd; if(4.data.solana.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.solana.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.solana.usd; \"%</td></tr>\"; \"\")}}\n      {{if(4.data.ripple.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>XRP</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.ripple.usd; 4; \".\"; \",\")}}{{if(4.data.ripple.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.ripple.usd; if(4.data.ripple.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.ripple.usd; \"'>\"; \"\")}}{{if(4.data.ripple.usd; if(4.data.ripple.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.ripple.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.ripple.usd; \"%</td></tr>\"; \"\")}}\n      {{if(4.data.binancecoin.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>BNB</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.binancecoin.usd; 2; \".\"; \",\")}}{{if(4.data.binancecoin.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.binancecoin.usd; if(4.data.binancecoin.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.binancecoin.usd; \"'>\"; \"\")}}{{if(4.data.binancecoin.usd; if(4.data.binancecoin.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.binancecoin.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.binancecoin.usd; \"%</td></tr>\"; \"\")}}\n      {{if(4.data.dogecoin.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>DOGE</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.dogecoin.usd; 4; \".\"; \",\")}}{{if(4.data.dogecoin.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.dogecoin.usd; if(4.data.dogecoin.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.dogecoin.usd; \"'>\"; \"\")}}{{if(4.data.dogecoin.usd; if(4.data.dogecoin.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.dogecoin.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.dogecoin.usd; \"%</td></tr>\"; \"\")}}\n    {{if(4.data.bitcoin.usd; \"</table>\"; \"\")}}\n    {{if(6.crypto_note; \"<p style='margin:6px 0'>\"; \"\")}}{{escapeHTML(6.crypto_note)}}{{if(6.crypto_note; \"</p>\"; \"\")}}\n    {{if(4.data.bitcoin.usd; \"<img src='\"; \"\")}}{{if(4.data.bitcoin.usd; 2.`8`; \"\")}}{{if(4.data.bitcoin.usd; \"/api/mm/chart?l=BTC,ETH,SOL,XRP,BNB,DOGE&amp;v=\"; \"\")}}{{formatNumber(4.data.bitcoin.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \",\"; \"\")}}{{formatNumber(4.data.ethereum.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \",\"; \"\")}}{{formatNumber(4.data.solana.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \",\"; \"\")}}{{formatNumber(4.data.ripple.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \",\"; \"\")}}{{formatNumber(4.data.binancecoin.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \",\"; \"\")}}{{formatNumber(4.data.dogecoin.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \"' width='552' style='width:100%;max-width:552px;height:auto;display:block;border:0' alt='Bar chart of the 24-hour percentage change for BTC, ETH, SOL, XRP, BNB and DOGE'>\"; \"\")}}\n    {{if(4.data.bitcoin.usd; \"<p style='margin:6px 0;font-size:14px;color:#6b7280'><a href='https://www.coingecko.com/en/api' style='color:#6b7280;text-decoration:none'><img src='\"; \"\")}}{{if(4.data.bitcoin.usd; 2.`8`; \"\")}}{{if(4.data.bitcoin.usd; \"/mm/coingecko-logo.png' width='16' height='16' alt='CoinGecko logo' style='vertical-align:middle;border:0'> Powered by CoinGecko</a></p>\"; \"\")}}\n  </td></tr>\n\n  <tr><td style=\"padding:16px 24px 20px 24px;font-size:12px;color:#6b7280;border-top:1px solid #eeeeee\">\n    For information only. Not financial advice.<br>\n    {{if(3.data.Results.series[1].data[1].value; \"Economic data: U.S. Bureau of Labor Statistics. \"; \"\")}}{{if(length(ifempty(18.rss.channel[1].item; emptyarray)) > 0; \"Fed speeches: Federal Reserve Board. \"; \"\")}}{{if(4.data.bitcoin.usd; \"Crypto data: <a href='https://www.coingecko.com/en/api' style='color:#6b7280;font-size:14px'>Powered by CoinGecko</a>. \"; \"\")}}{{if(6.source = \"fallback\"; \"Today's summary was not written by AI.\"; \"Summary written by AI from these sources.\")}}<br>\n    <a href=\"{{2.`8`}}/unsubscribe\" style=\"color:#6b7280\">Unsubscribe</a> (or reply \"unsubscribe\") · A portfolio demo by M&amp;S Manger\n  </td></tr>\n</table>\n</td></tr>\n</table>\n",
+                "subject": "MarketMorning · {{formatDate(now; \"ddd, MMM D\"; \"America/New_York\")}}: the Fed, US data and crypto",
+                "bodyType": "rawHtml",
+                "emailHeaders": [
+                  {
+                    "key": "{{REDACTED}}",
+                    "value": "<{{2.`8`}}/unsubscribe>"
+                  }
+                ]
+              },
+              "metadata": {
+                "designer": {
+                  "x": 2400,
+                  "y": -150,
+                  "name": "6 Send batch 1"
+                },
+                "setupValidation": {
+                  "result": {
+                    "valid": true,
+                    "fields": []
+                  },
+                  "version": 1,
+                  "configuration": "1a9620061bd306c9"
+                },
+                "restore": {
+                  "expect": {
+                    "cc": {
+                      "mode": "chose"
+                    },
+                    "to": {
+                      "mode": "chose",
+                      "items": [
+                        null
+                      ]
+                    },
+                    "bcc": {
+                      "mode": "edit"
+                    },
+                    "from": {
+                      "mode": "chose",
+                      "label": "Empty"
+                    },
+                    "bodyType": {
+                      "label": "Raw HTML"
+                    },
+                    "attachments": {
+                      "mode": "chose"
+                    },
+                    "emailHeaders": {
+                      "mode": "chose",
+                      "items": [
+                        null
+                      ]
+                    }
+                  },
+                  "parameters": {
+                    "__IMTCONN__": {
+                      "data": {
+                        "scoped": "true",
+                        "connection": "{{CONNECTION}}"
+                      },
+                      "label": "{{CONNECTION}}"
+                    }
+                  }
+                },
+                "parameters": [
+                  {
+                    "name": "__IMTCONN__",
+                    "type": "account:google-email",
+                    "label": "Connection",
+                    "required": true
+                  }
+                ],
+                "expect": [
+                  {
+                    "name": "to",
+                    "spec": {
+                      "name": "value",
+                      "type": "email",
+                      "label": "Recipient email address",
+                      "required": true,
+                      "validate": true
+                    },
+                    "type": "array",
+                    "label": "To",
+                    "required": true
+                  },
+                  {
+                    "name": "subject",
+                    "type": "text",
+                    "label": "Subject"
+                  },
+                  {
+                    "name": "bodyType",
+                    "type": "select",
+                    "label": "Body type",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "rawHtml",
+                        "collection"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "attachments",
+                    "spec": {
+                      "name": "value",
+                      "spec": [
+                        {
+                          "name": "filename",
+                          "type": "filename",
+                          "label": "File name",
+                          "required": true,
+                          "semantic": "file:name"
+                        },
+                        {
+                          "name": "data",
+                          "type": "buffer",
+                          "label": "Data",
+                          "required": true,
+                          "semantic": "file:data"
+                        }
+                      ],
+                      "type": "collection",
+                      "label": "Attachment"
+                    },
+                    "type": "array",
+                    "label": "Attachments"
+                  },
+                  {
+                    "name": "from",
+                    "type": "select",
+                    "label": "From"
+                  },
+                  {
+                    "name": "cc",
+                    "spec": {
+                      "name": "value",
+                      "type": "email",
+                      "label": "Recipient email address"
+                    },
+                    "type": "array",
+                    "label": "CC recipients"
+                  },
+                  {
+                    "name": "bcc",
+                    "spec": {
+                      "name": "value",
+                      "type": "email",
+                      "label": "Recipient email address"
+                    },
+                    "type": "array",
+                    "label": "BCC recipients"
+                  },
+                  {
+                    "name": "emailHeaders",
+                    "spec": {
+                      "name": "value",
+                      "spec": [
+                        {
+                          "name": "key",
+                          "type": "text",
+                          "label": "Key",
+                          "required": true
+                        },
+                        {
+                          "name": "value",
+                          "type": "text",
+                          "label": "Value"
+                        }
+                      ],
+                      "type": "collection",
+                      "label": "Email header"
+                    },
+                    "type": "array",
+                    "label": "Additional email headers"
+                  },
+                  {
+                    "name": "content",
+                    "type": "text",
+                    "label": "Content"
+                  }
+                ]
+              },
+              "onerror": [
+                {
+                  "id": 24,
+                  "module": "builtin:Resume",
+                  "version": 1,
+                  "metadata": {
+                    "designer": {
+                      "x": 2400,
+                      "y": 0
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": 8,
+              "module": "google-email:sendAnEmail",
+              "version": 4,
+              "parameters": {
+                "__IMTCONN__": "{{CONNECTION}}"
+              },
+              "mapper": {
+                "to": [
+                  "{{2.`9`}}"
+                ],
+                "bcc": "{{split(2.`6`; \",\")}}",
+                "content": "<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f4f5f7\">\n<tr><td align=\"center\" style=\"padding:16px 8px\">\n<table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;width:100%;background:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#111827\">\n  <tr><td style=\"padding:20px 24px 4px 24px\">\n    <div style=\"font-size:22px;font-weight:bold\">MarketMorning</div>\n    <div style=\"font-size:13px;color:#6b7280\">{{formatDate(now; \"dddd, MMMM D, YYYY\"; \"America/New_York\")}} · the Fed, US data and crypto</div>\n  </td></tr>\n\n  <tr><td style=\"padding:12px 24px\">{{escapeHTML(6.summary)}}</td></tr>\n\n  {{if(3.data.Results.series[1].data[1].value; \"<tr><td style='padding:12px 24px 0 24px;font-size:17px;font-weight:bold'>Latest US economic data</td></tr><tr><td style='padding:4px 24px'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='font-size:14px'>\"; \"\")}}\n      {{if(3.data.Results.series[1].data[1].value; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee'>Inflation (CPI), 1-month change</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>\"; \"\")}}{{if(3.data.Results.series[1].data[1].value; if(3.data.Results.series[1].data[1].calculations.pct_changes.`1` >= 0; \"+\"; \"\"); \"\")}}{{if(3.data.Results.series[1].data[1].value; 3.data.Results.series[1].data[1].calculations.pct_changes.`1`; \"\")}}{{if(3.data.Results.series[1].data[1].value; \"%\"; \"\")}}{{if(3.data.Results.series[1].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[1].data[1].value; 3.data.Results.series[1].data[1].periodName; \"\")}}{{if(3.data.Results.series[1].data[1].value; space; \"\")}}{{if(3.data.Results.series[1].data[1].value; 3.data.Results.series[1].data[1].year; \"\")}}{{if(3.data.Results.series[1].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}{{if(3.data.Results.series[1].data[1].value; \"</td></tr>\"; \"\")}}\n      {{if(3.data.Results.series[2].data[1].value; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee'>Unemployment rate</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>\"; \"\")}}{{if(3.data.Results.series[2].data[1].value; 3.data.Results.series[2].data[1].value; \"\")}}{{if(3.data.Results.series[2].data[1].value; \"%\"; \"\")}}{{if(3.data.Results.series[2].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[2].data[1].value; 3.data.Results.series[2].data[1].periodName; \"\")}}{{if(3.data.Results.series[2].data[1].value; space; \"\")}}{{if(3.data.Results.series[2].data[1].value; 3.data.Results.series[2].data[1].year; \"\")}}{{if(3.data.Results.series[2].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}{{if(3.data.Results.series[2].data[1].value; \"</td></tr>\"; \"\")}}\n      {{if(3.data.Results.series[3].data[1].value; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee'>Payroll jobs, 1-month change</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>\"; \"\")}}{{if(3.data.Results.series[3].data[1].value; if(3.data.Results.series[3].data[1].calculations.net_changes.`1` >= 0; \"+\"; \"\"); \"\")}}{{if(3.data.Results.series[3].data[1].value; formatNumber(3.data.Results.series[3].data[1].calculations.net_changes.`1` * 1000; 0; \".\"; \",\"); \"\")}}{{if(3.data.Results.series[3].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[3].data[1].value; 3.data.Results.series[3].data[1].periodName; \"\")}}{{if(3.data.Results.series[3].data[1].value; space; \"\")}}{{if(3.data.Results.series[3].data[1].value; 3.data.Results.series[3].data[1].year; \"\")}}{{if(3.data.Results.series[3].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}{{if(3.data.Results.series[3].data[1].value; \"</td></tr>\"; \"\")}}\n      {{if(3.data.Results.series[4].data[1].value; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee'>Producer prices (PPI), 1-month change</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>\"; \"\")}}{{if(3.data.Results.series[4].data[1].value; if(3.data.Results.series[4].data[1].calculations.pct_changes.`1` >= 0; \"+\"; \"\"); \"\")}}{{if(3.data.Results.series[4].data[1].value; 3.data.Results.series[4].data[1].calculations.pct_changes.`1`; \"\")}}{{if(3.data.Results.series[4].data[1].value; \"%\"; \"\")}}{{if(3.data.Results.series[4].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[4].data[1].value; 3.data.Results.series[4].data[1].periodName; \"\")}}{{if(3.data.Results.series[4].data[1].value; space; \"\")}}{{if(3.data.Results.series[4].data[1].value; 3.data.Results.series[4].data[1].year; \"\")}}{{if(3.data.Results.series[4].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}{{if(3.data.Results.series[4].data[1].value; \"</td></tr>\"; \"\")}}\n  {{if(3.data.Results.series[1].data[1].value; \"</table><p style='margin:4px 0;font-size:12px;color:#6b7280'>Latest release for each; (p) = preliminary. Source: <a href='https://www.bls.gov/' style='color:#6b7280'>U.S. Bureau of Labor Statistics</a>, retrieved \"; \"\")}}{{if(3.data.Results.series[1].data[1].value; formatDate(now; \"MMM D, YYYY\"; \"America/New_York\"); \"\")}}{{if(3.data.Results.series[1].data[1].value; \" via the BLS Public Data API. BLS.gov cannot vouch for the data or analyses derived from these data after the data have been retrieved from BLS.gov. MarketMorning is not affiliated with BLS.</p></td></tr>\"; \"\")}}\n\n  {{if(length(ifempty(18.rss.channel[1].item; emptyarray)) > 0; \"<tr><td style='padding:12px 24px 0 24px;font-size:17px;font-weight:bold'>From the Federal Reserve</td></tr><tr><td style='padding:4px 24px'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='font-size:14px'>\"; \"\")}}\n      {{if(18.rss.channel[1].item[1].link[1]; \"<tr><td style='padding:3px 0'><span style='color:#6b7280'>\"; \"\")}}{{if(18.rss.channel[1].item[1].link[1]; trim(substring(18.rss.channel[1].item[1].pubDate[1]; 5; 16)); \"\")}}{{if(18.rss.channel[1].item[1].link[1]; \"</span> <a href='\"; \"\")}}{{replace(18.rss.channel[1].item[1].link[1]; \"'\"; \"%27\")}}{{if(18.rss.channel[1].item[1].link[1]; \"' style='color:#1a56db'>\"; \"\")}}{{escapeHTML(18.rss.channel[1].item[1].title[1])}}{{if(18.rss.channel[1].item[1].link[1]; \"</a></td></tr>\"; \"\")}}\n      {{if(18.rss.channel[1].item[2].link[1]; \"<tr><td style='padding:3px 0'><span style='color:#6b7280'>\"; \"\")}}{{if(18.rss.channel[1].item[2].link[1]; trim(substring(18.rss.channel[1].item[2].pubDate[1]; 5; 16)); \"\")}}{{if(18.rss.channel[1].item[2].link[1]; \"</span> <a href='\"; \"\")}}{{replace(18.rss.channel[1].item[2].link[1]; \"'\"; \"%27\")}}{{if(18.rss.channel[1].item[2].link[1]; \"' style='color:#1a56db'>\"; \"\")}}{{escapeHTML(18.rss.channel[1].item[2].title[1])}}{{if(18.rss.channel[1].item[2].link[1]; \"</a></td></tr>\"; \"\")}}\n      {{if(18.rss.channel[1].item[3].link[1]; \"<tr><td style='padding:3px 0'><span style='color:#6b7280'>\"; \"\")}}{{if(18.rss.channel[1].item[3].link[1]; trim(substring(18.rss.channel[1].item[3].pubDate[1]; 5; 16)); \"\")}}{{if(18.rss.channel[1].item[3].link[1]; \"</span> <a href='\"; \"\")}}{{replace(18.rss.channel[1].item[3].link[1]; \"'\"; \"%27\")}}{{if(18.rss.channel[1].item[3].link[1]; \"' style='color:#1a56db'>\"; \"\")}}{{escapeHTML(18.rss.channel[1].item[3].title[1])}}{{if(18.rss.channel[1].item[3].link[1]; \"</a></td></tr>\"; \"\")}}\n  {{if(length(ifempty(18.rss.channel[1].item; emptyarray)) > 0; \"</table><p style='margin:4px 0;font-size:12px;color:#6b7280'>Latest speeches. Source: <a href='https://www.federalreserve.gov/' style='color:#6b7280'>Federal Reserve Board</a>. MarketMorning is not affiliated with the Federal Reserve.</p></td></tr>\"; \"\")}}\n\n  <tr><td style=\"padding:12px 24px 0 24px;font-size:17px;font-weight:bold\">Crypto</td></tr>\n  <tr><td style=\"padding:2px 24px;font-size:13px;color:#6b7280\">{{if(4.data.bitcoin.usd; \"Prices as of \"; \"Crypto prices unavailable today.\")}}{{if(4.data.bitcoin.usd; formatDate(parseDate(ifempty(4.data.bitcoin.last_updated_at; 0); \"X\"); \"ddd MMM D, YYYY h:mm A\"; \"America/New_York\"); \"\")}}{{if(4.data.bitcoin.usd; \" ET · 24h change\"; \"\")}}</td></tr>\n  <tr><td style=\"padding:4px 24px\">\n    {{if(4.data.bitcoin.usd; \"<table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='font-size:14px'>\"; \"\")}}\n      {{if(4.data.bitcoin.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>BTC</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.bitcoin.usd; 2; \".\"; \",\")}}{{if(4.data.bitcoin.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.bitcoin.usd; if(4.data.bitcoin.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.bitcoin.usd; \"'>\"; \"\")}}{{if(4.data.bitcoin.usd; if(4.data.bitcoin.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.bitcoin.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.bitcoin.usd; \"%</td></tr>\"; \"\")}}\n      {{if(4.data.ethereum.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>ETH</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.ethereum.usd; 2; \".\"; \",\")}}{{if(4.data.ethereum.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.ethereum.usd; if(4.data.ethereum.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.ethereum.usd; \"'>\"; \"\")}}{{if(4.data.ethereum.usd; if(4.data.ethereum.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.ethereum.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.ethereum.usd; \"%</td></tr>\"; \"\")}}\n      {{if(4.data.solana.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>SOL</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.solana.usd; 2; \".\"; \",\")}}{{if(4.data.solana.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.solana.usd; if(4.data.solana.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.solana.usd; \"'>\"; \"\")}}{{if(4.data.solana.usd; if(4.data.solana.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.solana.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.solana.usd; \"%</td></tr>\"; \"\")}}\n      {{if(4.data.ripple.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>XRP</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.ripple.usd; 4; \".\"; \",\")}}{{if(4.data.ripple.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.ripple.usd; if(4.data.ripple.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.ripple.usd; \"'>\"; \"\")}}{{if(4.data.ripple.usd; if(4.data.ripple.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.ripple.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.ripple.usd; \"%</td></tr>\"; \"\")}}\n      {{if(4.data.binancecoin.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>BNB</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.binancecoin.usd; 2; \".\"; \",\")}}{{if(4.data.binancecoin.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.binancecoin.usd; if(4.data.binancecoin.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.binancecoin.usd; \"'>\"; \"\")}}{{if(4.data.binancecoin.usd; if(4.data.binancecoin.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.binancecoin.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.binancecoin.usd; \"%</td></tr>\"; \"\")}}\n      {{if(4.data.dogecoin.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>DOGE</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.dogecoin.usd; 4; \".\"; \",\")}}{{if(4.data.dogecoin.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.dogecoin.usd; if(4.data.dogecoin.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.dogecoin.usd; \"'>\"; \"\")}}{{if(4.data.dogecoin.usd; if(4.data.dogecoin.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.dogecoin.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.dogecoin.usd; \"%</td></tr>\"; \"\")}}\n    {{if(4.data.bitcoin.usd; \"</table>\"; \"\")}}\n    {{if(6.crypto_note; \"<p style='margin:6px 0'>\"; \"\")}}{{escapeHTML(6.crypto_note)}}{{if(6.crypto_note; \"</p>\"; \"\")}}\n    {{if(4.data.bitcoin.usd; \"<img src='\"; \"\")}}{{if(4.data.bitcoin.usd; 2.`8`; \"\")}}{{if(4.data.bitcoin.usd; \"/api/mm/chart?l=BTC,ETH,SOL,XRP,BNB,DOGE&amp;v=\"; \"\")}}{{formatNumber(4.data.bitcoin.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \",\"; \"\")}}{{formatNumber(4.data.ethereum.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \",\"; \"\")}}{{formatNumber(4.data.solana.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \",\"; \"\")}}{{formatNumber(4.data.ripple.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \",\"; \"\")}}{{formatNumber(4.data.binancecoin.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \",\"; \"\")}}{{formatNumber(4.data.dogecoin.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \"' width='552' style='width:100%;max-width:552px;height:auto;display:block;border:0' alt='Bar chart of the 24-hour percentage change for BTC, ETH, SOL, XRP, BNB and DOGE'>\"; \"\")}}\n    {{if(4.data.bitcoin.usd; \"<p style='margin:6px 0;font-size:14px;color:#6b7280'><a href='https://www.coingecko.com/en/api' style='color:#6b7280;text-decoration:none'><img src='\"; \"\")}}{{if(4.data.bitcoin.usd; 2.`8`; \"\")}}{{if(4.data.bitcoin.usd; \"/mm/coingecko-logo.png' width='16' height='16' alt='CoinGecko logo' style='vertical-align:middle;border:0'> Powered by CoinGecko</a></p>\"; \"\")}}\n  </td></tr>\n\n  <tr><td style=\"padding:16px 24px 20px 24px;font-size:12px;color:#6b7280;border-top:1px solid #eeeeee\">\n    For information only. Not financial advice.<br>\n    {{if(3.data.Results.series[1].data[1].value; \"Economic data: U.S. Bureau of Labor Statistics. \"; \"\")}}{{if(length(ifempty(18.rss.channel[1].item; emptyarray)) > 0; \"Fed speeches: Federal Reserve Board. \"; \"\")}}{{if(4.data.bitcoin.usd; \"Crypto data: <a href='https://www.coingecko.com/en/api' style='color:#6b7280;font-size:14px'>Powered by CoinGecko</a>. \"; \"\")}}{{if(6.source = \"fallback\"; \"Today's summary was not written by AI.\"; \"Summary written by AI from these sources.\")}}<br>\n    <a href=\"{{2.`8`}}/unsubscribe\" style=\"color:#6b7280\">Unsubscribe</a> (or reply \"unsubscribe\") · A portfolio demo by M&amp;S Manger\n  </td></tr>\n</table>\n</td></tr>\n</table>\n",
+                "subject": "MarketMorning · {{formatDate(now; \"ddd, MMM D\"; \"America/New_York\")}}: the Fed, US data and crypto",
+                "bodyType": "rawHtml",
+                "emailHeaders": [
+                  {
+                    "key": "{{REDACTED}}",
+                    "value": "<{{2.`8`}}/unsubscribe>"
+                  }
+                ]
+              },
+              "metadata": {
+                "designer": {
+                  "x": 2700,
+                  "y": -150,
+                  "name": "7 Send batch 2"
+                },
+                "setupValidation": {
+                  "result": {
+                    "valid": true,
+                    "fields": []
+                  },
+                  "version": 1,
+                  "configuration": "4319bfa0ef204d8a"
+                },
+                "restore": {
+                  "expect": {
+                    "cc": {
+                      "mode": "chose"
+                    },
+                    "to": {
+                      "mode": "chose",
+                      "items": [
+                        null
+                      ]
+                    },
+                    "bcc": {
+                      "mode": "edit"
+                    },
+                    "from": {
+                      "mode": "chose",
+                      "label": "Empty"
+                    },
+                    "bodyType": {
+                      "label": "Raw HTML"
+                    },
+                    "attachments": {
+                      "mode": "chose"
+                    },
+                    "emailHeaders": {
+                      "mode": "chose",
+                      "items": [
+                        null
+                      ]
+                    }
+                  },
+                  "parameters": {
+                    "__IMTCONN__": {
+                      "data": {
+                        "scoped": "true",
+                        "connection": "{{CONNECTION}}"
+                      },
+                      "label": "{{CONNECTION}}"
+                    }
+                  }
+                },
+                "parameters": [
+                  {
+                    "name": "__IMTCONN__",
+                    "type": "account:google-email",
+                    "label": "Connection",
+                    "required": true
+                  }
+                ],
+                "expect": [
+                  {
+                    "name": "to",
+                    "spec": {
+                      "name": "value",
+                      "type": "email",
+                      "label": "Recipient email address",
+                      "required": true,
+                      "validate": true
+                    },
+                    "type": "array",
+                    "label": "To",
+                    "required": true
+                  },
+                  {
+                    "name": "subject",
+                    "type": "text",
+                    "label": "Subject"
+                  },
+                  {
+                    "name": "bodyType",
+                    "type": "select",
+                    "label": "Body type",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "rawHtml",
+                        "collection"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "attachments",
+                    "spec": {
+                      "name": "value",
+                      "spec": [
+                        {
+                          "name": "filename",
+                          "type": "filename",
+                          "label": "File name",
+                          "required": true,
+                          "semantic": "file:name"
+                        },
+                        {
+                          "name": "data",
+                          "type": "buffer",
+                          "label": "Data",
+                          "required": true,
+                          "semantic": "file:data"
+                        }
+                      ],
+                      "type": "collection",
+                      "label": "Attachment"
+                    },
+                    "type": "array",
+                    "label": "Attachments"
+                  },
+                  {
+                    "name": "from",
+                    "type": "select",
+                    "label": "From"
+                  },
+                  {
+                    "name": "cc",
+                    "spec": {
+                      "name": "value",
+                      "type": "email",
+                      "label": "Recipient email address"
+                    },
+                    "type": "array",
+                    "label": "CC recipients"
+                  },
+                  {
+                    "name": "bcc",
+                    "spec": {
+                      "name": "value",
+                      "type": "email",
+                      "label": "Recipient email address"
+                    },
+                    "type": "array",
+                    "label": "BCC recipients"
+                  },
+                  {
+                    "name": "emailHeaders",
+                    "spec": {
+                      "name": "value",
+                      "spec": [
+                        {
+                          "name": "key",
+                          "type": "text",
+                          "label": "Key",
+                          "required": true
+                        },
+                        {
+                          "name": "value",
+                          "type": "text",
+                          "label": "Value"
+                        }
+                      ],
+                      "type": "collection",
+                      "label": "Email header"
+                    },
+                    "type": "array",
+                    "label": "Additional email headers"
+                  },
+                  {
+                    "name": "content",
+                    "type": "text",
+                    "label": "Content"
+                  }
+                ]
+              },
+              "onerror": [
+                {
+                  "id": 25,
+                  "module": "builtin:Resume",
+                  "version": 1,
+                  "metadata": {
+                    "designer": {
+                      "x": 2700,
+                      "y": 0
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "module": "google-email:sendAnEmail",
+              "version": 4,
+              "parameters": {
+                "__IMTCONN__": "{{CONNECTION}}"
+              },
+              "mapper": {
+                "to": [
+                  "{{2.`9`}}"
+                ],
+                "bcc": "{{split(2.`7`; \",\")}}",
+                "content": "<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f4f5f7\">\n<tr><td align=\"center\" style=\"padding:16px 8px\">\n<table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;width:100%;background:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#111827\">\n  <tr><td style=\"padding:20px 24px 4px 24px\">\n    <div style=\"font-size:22px;font-weight:bold\">MarketMorning</div>\n    <div style=\"font-size:13px;color:#6b7280\">{{formatDate(now; \"dddd, MMMM D, YYYY\"; \"America/New_York\")}} · the Fed, US data and crypto</div>\n  </td></tr>\n\n  <tr><td style=\"padding:12px 24px\">{{escapeHTML(6.summary)}}</td></tr>\n\n  {{if(3.data.Results.series[1].data[1].value; \"<tr><td style='padding:12px 24px 0 24px;font-size:17px;font-weight:bold'>Latest US economic data</td></tr><tr><td style='padding:4px 24px'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='font-size:14px'>\"; \"\")}}\n      {{if(3.data.Results.series[1].data[1].value; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee'>Inflation (CPI), 1-month change</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>\"; \"\")}}{{if(3.data.Results.series[1].data[1].value; if(3.data.Results.series[1].data[1].calculations.pct_changes.`1` >= 0; \"+\"; \"\"); \"\")}}{{if(3.data.Results.series[1].data[1].value; 3.data.Results.series[1].data[1].calculations.pct_changes.`1`; \"\")}}{{if(3.data.Results.series[1].data[1].value; \"%\"; \"\")}}{{if(3.data.Results.series[1].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[1].data[1].value; 3.data.Results.series[1].data[1].periodName; \"\")}}{{if(3.data.Results.series[1].data[1].value; space; \"\")}}{{if(3.data.Results.series[1].data[1].value; 3.data.Results.series[1].data[1].year; \"\")}}{{if(3.data.Results.series[1].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}{{if(3.data.Results.series[1].data[1].value; \"</td></tr>\"; \"\")}}\n      {{if(3.data.Results.series[2].data[1].value; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee'>Unemployment rate</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>\"; \"\")}}{{if(3.data.Results.series[2].data[1].value; 3.data.Results.series[2].data[1].value; \"\")}}{{if(3.data.Results.series[2].data[1].value; \"%\"; \"\")}}{{if(3.data.Results.series[2].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[2].data[1].value; 3.data.Results.series[2].data[1].periodName; \"\")}}{{if(3.data.Results.series[2].data[1].value; space; \"\")}}{{if(3.data.Results.series[2].data[1].value; 3.data.Results.series[2].data[1].year; \"\")}}{{if(3.data.Results.series[2].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}{{if(3.data.Results.series[2].data[1].value; \"</td></tr>\"; \"\")}}\n      {{if(3.data.Results.series[3].data[1].value; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee'>Payroll jobs, 1-month change</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>\"; \"\")}}{{if(3.data.Results.series[3].data[1].value; if(3.data.Results.series[3].data[1].calculations.net_changes.`1` >= 0; \"+\"; \"\"); \"\")}}{{if(3.data.Results.series[3].data[1].value; formatNumber(3.data.Results.series[3].data[1].calculations.net_changes.`1` * 1000; 0; \".\"; \",\"); \"\")}}{{if(3.data.Results.series[3].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[3].data[1].value; 3.data.Results.series[3].data[1].periodName; \"\")}}{{if(3.data.Results.series[3].data[1].value; space; \"\")}}{{if(3.data.Results.series[3].data[1].value; 3.data.Results.series[3].data[1].year; \"\")}}{{if(3.data.Results.series[3].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}{{if(3.data.Results.series[3].data[1].value; \"</td></tr>\"; \"\")}}\n      {{if(3.data.Results.series[4].data[1].value; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee'>Producer prices (PPI), 1-month change</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>\"; \"\")}}{{if(3.data.Results.series[4].data[1].value; if(3.data.Results.series[4].data[1].calculations.pct_changes.`1` >= 0; \"+\"; \"\"); \"\")}}{{if(3.data.Results.series[4].data[1].value; 3.data.Results.series[4].data[1].calculations.pct_changes.`1`; \"\")}}{{if(3.data.Results.series[4].data[1].value; \"%\"; \"\")}}{{if(3.data.Results.series[4].data[1].value; \" in \"; \"\")}}{{if(3.data.Results.series[4].data[1].value; 3.data.Results.series[4].data[1].periodName; \"\")}}{{if(3.data.Results.series[4].data[1].value; space; \"\")}}{{if(3.data.Results.series[4].data[1].value; 3.data.Results.series[4].data[1].year; \"\")}}{{if(3.data.Results.series[4].data[1].footnotes[1].code = \"P\"; \" (p)\"; \"\")}}{{if(3.data.Results.series[4].data[1].value; \"</td></tr>\"; \"\")}}\n  {{if(3.data.Results.series[1].data[1].value; \"</table><p style='margin:4px 0;font-size:12px;color:#6b7280'>Latest release for each; (p) = preliminary. Source: <a href='https://www.bls.gov/' style='color:#6b7280'>U.S. Bureau of Labor Statistics</a>, retrieved \"; \"\")}}{{if(3.data.Results.series[1].data[1].value; formatDate(now; \"MMM D, YYYY\"; \"America/New_York\"); \"\")}}{{if(3.data.Results.series[1].data[1].value; \" via the BLS Public Data API. BLS.gov cannot vouch for the data or analyses derived from these data after the data have been retrieved from BLS.gov. MarketMorning is not affiliated with BLS.</p></td></tr>\"; \"\")}}\n\n  {{if(length(ifempty(18.rss.channel[1].item; emptyarray)) > 0; \"<tr><td style='padding:12px 24px 0 24px;font-size:17px;font-weight:bold'>From the Federal Reserve</td></tr><tr><td style='padding:4px 24px'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='font-size:14px'>\"; \"\")}}\n      {{if(18.rss.channel[1].item[1].link[1]; \"<tr><td style='padding:3px 0'><span style='color:#6b7280'>\"; \"\")}}{{if(18.rss.channel[1].item[1].link[1]; trim(substring(18.rss.channel[1].item[1].pubDate[1]; 5; 16)); \"\")}}{{if(18.rss.channel[1].item[1].link[1]; \"</span> <a href='\"; \"\")}}{{replace(18.rss.channel[1].item[1].link[1]; \"'\"; \"%27\")}}{{if(18.rss.channel[1].item[1].link[1]; \"' style='color:#1a56db'>\"; \"\")}}{{escapeHTML(18.rss.channel[1].item[1].title[1])}}{{if(18.rss.channel[1].item[1].link[1]; \"</a></td></tr>\"; \"\")}}\n      {{if(18.rss.channel[1].item[2].link[1]; \"<tr><td style='padding:3px 0'><span style='color:#6b7280'>\"; \"\")}}{{if(18.rss.channel[1].item[2].link[1]; trim(substring(18.rss.channel[1].item[2].pubDate[1]; 5; 16)); \"\")}}{{if(18.rss.channel[1].item[2].link[1]; \"</span> <a href='\"; \"\")}}{{replace(18.rss.channel[1].item[2].link[1]; \"'\"; \"%27\")}}{{if(18.rss.channel[1].item[2].link[1]; \"' style='color:#1a56db'>\"; \"\")}}{{escapeHTML(18.rss.channel[1].item[2].title[1])}}{{if(18.rss.channel[1].item[2].link[1]; \"</a></td></tr>\"; \"\")}}\n      {{if(18.rss.channel[1].item[3].link[1]; \"<tr><td style='padding:3px 0'><span style='color:#6b7280'>\"; \"\")}}{{if(18.rss.channel[1].item[3].link[1]; trim(substring(18.rss.channel[1].item[3].pubDate[1]; 5; 16)); \"\")}}{{if(18.rss.channel[1].item[3].link[1]; \"</span> <a href='\"; \"\")}}{{replace(18.rss.channel[1].item[3].link[1]; \"'\"; \"%27\")}}{{if(18.rss.channel[1].item[3].link[1]; \"' style='color:#1a56db'>\"; \"\")}}{{escapeHTML(18.rss.channel[1].item[3].title[1])}}{{if(18.rss.channel[1].item[3].link[1]; \"</a></td></tr>\"; \"\")}}\n  {{if(length(ifempty(18.rss.channel[1].item; emptyarray)) > 0; \"</table><p style='margin:4px 0;font-size:12px;color:#6b7280'>Latest speeches. Source: <a href='https://www.federalreserve.gov/' style='color:#6b7280'>Federal Reserve Board</a>. MarketMorning is not affiliated with the Federal Reserve.</p></td></tr>\"; \"\")}}\n\n  <tr><td style=\"padding:12px 24px 0 24px;font-size:17px;font-weight:bold\">Crypto</td></tr>\n  <tr><td style=\"padding:2px 24px;font-size:13px;color:#6b7280\">{{if(4.data.bitcoin.usd; \"Prices as of \"; \"Crypto prices unavailable today.\")}}{{if(4.data.bitcoin.usd; formatDate(parseDate(ifempty(4.data.bitcoin.last_updated_at; 0); \"X\"); \"ddd MMM D, YYYY h:mm A\"; \"America/New_York\"); \"\")}}{{if(4.data.bitcoin.usd; \" ET · 24h change\"; \"\")}}</td></tr>\n  <tr><td style=\"padding:4px 24px\">\n    {{if(4.data.bitcoin.usd; \"<table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='font-size:14px'>\"; \"\")}}\n      {{if(4.data.bitcoin.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>BTC</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.bitcoin.usd; 2; \".\"; \",\")}}{{if(4.data.bitcoin.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.bitcoin.usd; if(4.data.bitcoin.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.bitcoin.usd; \"'>\"; \"\")}}{{if(4.data.bitcoin.usd; if(4.data.bitcoin.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.bitcoin.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.bitcoin.usd; \"%</td></tr>\"; \"\")}}\n      {{if(4.data.ethereum.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>ETH</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.ethereum.usd; 2; \".\"; \",\")}}{{if(4.data.ethereum.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.ethereum.usd; if(4.data.ethereum.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.ethereum.usd; \"'>\"; \"\")}}{{if(4.data.ethereum.usd; if(4.data.ethereum.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.ethereum.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.ethereum.usd; \"%</td></tr>\"; \"\")}}\n      {{if(4.data.solana.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>SOL</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.solana.usd; 2; \".\"; \",\")}}{{if(4.data.solana.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.solana.usd; if(4.data.solana.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.solana.usd; \"'>\"; \"\")}}{{if(4.data.solana.usd; if(4.data.solana.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.solana.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.solana.usd; \"%</td></tr>\"; \"\")}}\n      {{if(4.data.ripple.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>XRP</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.ripple.usd; 4; \".\"; \",\")}}{{if(4.data.ripple.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.ripple.usd; if(4.data.ripple.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.ripple.usd; \"'>\"; \"\")}}{{if(4.data.ripple.usd; if(4.data.ripple.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.ripple.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.ripple.usd; \"%</td></tr>\"; \"\")}}\n      {{if(4.data.binancecoin.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>BNB</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.binancecoin.usd; 2; \".\"; \",\")}}{{if(4.data.binancecoin.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.binancecoin.usd; if(4.data.binancecoin.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.binancecoin.usd; \"'>\"; \"\")}}{{if(4.data.binancecoin.usd; if(4.data.binancecoin.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.binancecoin.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.binancecoin.usd; \"%</td></tr>\"; \"\")}}\n      {{if(4.data.dogecoin.usd; \"<tr><td style='padding:6px 8px;border-bottom:1px solid #eeeeee;font-weight:bold'>DOGE</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee'>$\"; \"\")}}{{formatNumber(4.data.dogecoin.usd; 4; \".\"; \",\")}}{{if(4.data.dogecoin.usd; \"</td><td align='right' style='padding:6px 8px;border-bottom:1px solid #eeeeee;color:\"; \"\")}}{{if(4.data.dogecoin.usd; if(4.data.dogecoin.usd_24h_change >= 0; \"#137333\"; \"#a50e0e\"); \"\")}}{{if(4.data.dogecoin.usd; \"'>\"; \"\")}}{{if(4.data.dogecoin.usd; if(4.data.dogecoin.usd_24h_change >= 0; \"+\"; \"\"); \"\")}}{{formatNumber(4.data.dogecoin.usd_24h_change; 2; \".\"; \",\")}}{{if(4.data.dogecoin.usd; \"%</td></tr>\"; \"\")}}\n    {{if(4.data.bitcoin.usd; \"</table>\"; \"\")}}\n    {{if(6.crypto_note; \"<p style='margin:6px 0'>\"; \"\")}}{{escapeHTML(6.crypto_note)}}{{if(6.crypto_note; \"</p>\"; \"\")}}\n    {{if(4.data.bitcoin.usd; \"<img src='\"; \"\")}}{{if(4.data.bitcoin.usd; 2.`8`; \"\")}}{{if(4.data.bitcoin.usd; \"/api/mm/chart?l=BTC,ETH,SOL,XRP,BNB,DOGE&amp;v=\"; \"\")}}{{formatNumber(4.data.bitcoin.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \",\"; \"\")}}{{formatNumber(4.data.ethereum.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \",\"; \"\")}}{{formatNumber(4.data.solana.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \",\"; \"\")}}{{formatNumber(4.data.ripple.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \",\"; \"\")}}{{formatNumber(4.data.binancecoin.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \",\"; \"\")}}{{formatNumber(4.data.dogecoin.usd_24h_change; 2; \".\"; \"\")}}{{if(4.data.bitcoin.usd; \"' width='552' style='width:100%;max-width:552px;height:auto;display:block;border:0' alt='Bar chart of the 24-hour percentage change for BTC, ETH, SOL, XRP, BNB and DOGE'>\"; \"\")}}\n    {{if(4.data.bitcoin.usd; \"<p style='margin:6px 0;font-size:14px;color:#6b7280'><a href='https://www.coingecko.com/en/api' style='color:#6b7280;text-decoration:none'><img src='\"; \"\")}}{{if(4.data.bitcoin.usd; 2.`8`; \"\")}}{{if(4.data.bitcoin.usd; \"/mm/coingecko-logo.png' width='16' height='16' alt='CoinGecko logo' style='vertical-align:middle;border:0'> Powered by CoinGecko</a></p>\"; \"\")}}\n  </td></tr>\n\n  <tr><td style=\"padding:16px 24px 20px 24px;font-size:12px;color:#6b7280;border-top:1px solid #eeeeee\">\n    For information only. Not financial advice.<br>\n    {{if(3.data.Results.series[1].data[1].value; \"Economic data: U.S. Bureau of Labor Statistics. \"; \"\")}}{{if(length(ifempty(18.rss.channel[1].item; emptyarray)) > 0; \"Fed speeches: Federal Reserve Board. \"; \"\")}}{{if(4.data.bitcoin.usd; \"Crypto data: <a href='https://www.coingecko.com/en/api' style='color:#6b7280;font-size:14px'>Powered by CoinGecko</a>. \"; \"\")}}{{if(6.source = \"fallback\"; \"Today's summary was not written by AI.\"; \"Summary written by AI from these sources.\")}}<br>\n    <a href=\"{{2.`8`}}/unsubscribe\" style=\"color:#6b7280\">Unsubscribe</a> (or reply \"unsubscribe\") · A portfolio demo by M&amp;S Manger\n  </td></tr>\n</table>\n</td></tr>\n</table>\n",
+                "subject": "MarketMorning · {{formatDate(now; \"ddd, MMM D\"; \"America/New_York\")}}: the Fed, US data and crypto",
+                "bodyType": "rawHtml",
+                "emailHeaders": [
+                  {
+                    "key": "{{REDACTED}}",
+                    "value": "<{{2.`8`}}/unsubscribe>"
+                  }
+                ]
+              },
+              "metadata": {
+                "designer": {
+                  "x": 3000,
+                  "y": -150,
+                  "name": "8 Send batch 3"
+                },
+                "setupValidation": {
+                  "result": {
+                    "valid": true,
+                    "fields": []
+                  },
+                  "version": 1,
+                  "configuration": "bcb9925826d2bc63"
+                },
+                "restore": {
+                  "expect": {
+                    "cc": {
+                      "mode": "chose"
+                    },
+                    "to": {
+                      "mode": "chose",
+                      "items": [
+                        null
+                      ]
+                    },
+                    "bcc": {
+                      "mode": "edit"
+                    },
+                    "from": {
+                      "mode": "chose",
+                      "label": "Empty"
+                    },
+                    "bodyType": {
+                      "label": "Raw HTML"
+                    },
+                    "attachments": {
+                      "mode": "chose"
+                    },
+                    "emailHeaders": {
+                      "mode": "chose",
+                      "items": [
+                        null
+                      ]
+                    }
+                  },
+                  "parameters": {
+                    "__IMTCONN__": {
+                      "data": {
+                        "scoped": "true",
+                        "connection": "{{CONNECTION}}"
+                      },
+                      "label": "{{CONNECTION}}"
+                    }
+                  }
+                },
+                "parameters": [
+                  {
+                    "name": "__IMTCONN__",
+                    "type": "account:google-email",
+                    "label": "Connection",
+                    "required": true
+                  }
+                ],
+                "expect": [
+                  {
+                    "name": "to",
+                    "spec": {
+                      "name": "value",
+                      "type": "email",
+                      "label": "Recipient email address",
+                      "required": true,
+                      "validate": true
+                    },
+                    "type": "array",
+                    "label": "To",
+                    "required": true
+                  },
+                  {
+                    "name": "subject",
+                    "type": "text",
+                    "label": "Subject"
+                  },
+                  {
+                    "name": "bodyType",
+                    "type": "select",
+                    "label": "Body type",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "rawHtml",
+                        "collection"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "attachments",
+                    "spec": {
+                      "name": "value",
+                      "spec": [
+                        {
+                          "name": "filename",
+                          "type": "filename",
+                          "label": "File name",
+                          "required": true,
+                          "semantic": "file:name"
+                        },
+                        {
+                          "name": "data",
+                          "type": "buffer",
+                          "label": "Data",
+                          "required": true,
+                          "semantic": "file:data"
+                        }
+                      ],
+                      "type": "collection",
+                      "label": "Attachment"
+                    },
+                    "type": "array",
+                    "label": "Attachments"
+                  },
+                  {
+                    "name": "from",
+                    "type": "select",
+                    "label": "From"
+                  },
+                  {
+                    "name": "cc",
+                    "spec": {
+                      "name": "value",
+                      "type": "email",
+                      "label": "Recipient email address"
+                    },
+                    "type": "array",
+                    "label": "CC recipients"
+                  },
+                  {
+                    "name": "bcc",
+                    "spec": {
+                      "name": "value",
+                      "type": "email",
+                      "label": "Recipient email address"
+                    },
+                    "type": "array",
+                    "label": "BCC recipients"
+                  },
+                  {
+                    "name": "emailHeaders",
+                    "spec": {
+                      "name": "value",
+                      "spec": [
+                        {
+                          "name": "key",
+                          "type": "text",
+                          "label": "Key",
+                          "required": true
+                        },
+                        {
+                          "name": "value",
+                          "type": "text",
+                          "label": "Value"
+                        }
+                      ],
+                      "type": "collection",
+                      "label": "Email header"
+                    },
+                    "type": "array",
+                    "label": "Additional email headers"
+                  },
+                  {
+                    "name": "content",
+                    "type": "text",
+                    "label": "Content"
+                  }
+                ]
+              },
+              "onerror": [
+                {
+                  "id": 26,
+                  "module": "builtin:Resume",
+                  "version": 1,
+                  "metadata": {
+                    "designer": {
+                      "x": 3000,
+                      "y": 0
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "module": "google-sheets:addRow",
+              "version": 2,
+              "parameters": {
+                "__IMTCONN__": "{{CONNECTION}}"
+              },
+              "mapper": {
+                "mode": "map",
+                "values": {
+                  "0": "{{formatDate(now; \"YYYY-MM-DD\"; \"America/New_York\")}}",
+                  "1": "{{2.`3`}}",
+                  "2": "{{if(7.id; 1; 0) + if(2.`4` < 2; 0; if(8.id; 1; 0)) + if(2.`4` < 3; 0; if(9.id; 1; 0))}}",
+                  "3": "{{if(2.`4` = 0; \"ok\"; if((if(7.id; 1; 0) + if(2.`4` < 2; 0; if(8.id; 1; 0)) + if(2.`4` < 3; 0; if(9.id; 1; 0))) = 0; \"failed\"; if((if(7.id; 1; 0) + if(2.`4` < 2; 0; if(8.id; 1; 0)) + if(2.`4` < 3; 0; if(9.id; 1; 0))) < 2.`4`; \"partial\"; if(6.source = \"fallback\"; \"ok_no_ai\"; \"ok\"))))}}",
+                  "4": "{{if(6.source = \"fallback\"; \"AI fallback. \"; \"\")}}{{if(3.data.Results.series[1].data[1].value; \"\"; \"No BLS data. \")}}{{if(4.data.bitcoin.usd; \"\"; \"No crypto data. \")}}{{if(length(ifempty(18.rss.channel[1].item; emptyarray)) = 0; \"No Fed feed. \"; \"\")}}{{if((if(7.id; 1; 0) + if(2.`4` < 2; 0; if(8.id; 1; 0)) + if(2.`4` < 3; 0; if(9.id; 1; 0))) < 2.`4`; \"Batch failures. \"; \"\")}}"
+                },
+                "sheetId": "SendLog",
+                "spreadsheetId": "{{SHEET_ID}}",
+                "tableFirstRow": "A1:Z1",
+                "insertDataOption": "INSERT_ROWS",
+                "valueInputOption": "USER_ENTERED",
+                "insertUnformatted": false
+              },
+              "metadata": {
+                "designer": {
+                  "x": 3300,
+                  "y": -150,
+                  "name": "9 Log run"
+                },
+                "setupValidation": {
+                  "result": {
+                    "valid": true,
+                    "fields": []
+                  },
+                  "version": 1,
+                  "configuration": "20ed3d3f36f68bd7"
+                },
+                "restore": {
+                  "expect": {
+                    "mode": {
+                      "label": "Enter manually"
+                    },
+                    "tableFirstRow": {
+                      "label": "A-Z",
+                      "nested": [
+                        {
+                          "name": "values",
+                          "spec": [
+                            {
+                              "name": "0",
+                              "type": "text",
+                              "label": "A"
+                            },
+                            {
+                              "name": "1",
+                              "type": "text",
+                              "label": "B"
+                            },
+                            {
+                              "name": "2",
+                              "type": "text",
+                              "label": "C"
+                            },
+                            {
+                              "name": "3",
+                              "type": "text",
+                              "label": "D"
+                            },
+                            {
+                              "name": "4",
+                              "type": "text",
+                              "label": "E"
+                            },
+                            {
+                              "name": "5",
+                              "type": "text",
+                              "label": "F"
+                            },
+                            {
+                              "name": "6",
+                              "type": "text",
+                              "label": "G"
+                            },
+                            {
+                              "name": "7",
+                              "type": "text",
+                              "label": "H"
+                            },
+                            {
+                              "name": "8",
+                              "type": "text",
+                              "label": "I"
+                            },
+                            {
+                              "name": "9",
+                              "type": "text",
+                              "label": "J"
+                            },
+                            {
+                              "name": "10",
+                              "type": "text",
+                              "label": "K"
+                            },
+                            {
+                              "name": "11",
+                              "type": "text",
+                              "label": "L"
+                            },
+                            {
+                              "name": "12",
+                              "type": "text",
+                              "label": "M"
+                            },
+                            {
+                              "name": "13",
+                              "type": "text",
+                              "label": "N"
+                            },
+                            {
+                              "name": "14",
+                              "type": "text",
+                              "label": "O"
+                            },
+                            {
+                              "name": "15",
+                              "type": "text",
+                              "label": "P"
+                            },
+                            {
+                              "name": "16",
+                              "type": "text",
+                              "label": "Q"
+                            },
+                            {
+                              "name": "17",
+                              "type": "text",
+                              "label": "R"
+                            },
+                            {
+                              "name": "18",
+                              "type": "text",
+                              "label": "S"
+                            },
+                            {
+                              "name": "19",
+                              "type": "text",
+                              "label": "T"
+                            },
+                            {
+                              "name": "20",
+                              "type": "text",
+                              "label": "U"
+                            },
+                            {
+                              "name": "21",
+                              "type": "text",
+                              "label": "V"
+                            },
+                            {
+                              "name": "22",
+                              "type": "text",
+                              "label": "W"
+                            },
+                            {
+                              "name": "23",
+                              "type": "text",
+                              "label": "X"
+                            },
+                            {
+                              "name": "24",
+                              "type": "text",
+                              "label": "Y"
+                            },
+                            {
+                              "name": "25",
+                              "type": "text",
+                              "label": "Z"
+                            }
+                          ],
+                          "type": "collection",
+                          "label": "Values in columns"
+                        }
+                      ]
+                    },
+                    "insertDataOption": {
+                      "mode": "chose",
+                      "label": "Insert rows"
+                    },
+                    "valueInputOption": {
+                      "mode": "chose",
+                      "label": "User entered"
+                    },
+                    "insertUnformatted": {
+                      "mode": "chose"
+                    }
+                  },
+                  "parameters": {
+                    "__IMTCONN__": {
+                      "data": {
+                        "scoped": "true",
+                        "connection": "{{CONNECTION}}"
+                      },
+                      "label": "{{CONNECTION}}"
+                    }
+                  }
+                },
+                "parameters": [
+                  {
+                    "name": "__IMTCONN__",
+                    "type": "account:google",
+                    "label": "Connection",
+                    "required": true
+                  }
+                ],
+                "expect": [
+                  {
+                    "name": "mode",
+                    "type": "select",
+                    "label": "Search Method",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "select",
+                        "fromAll",
+                        "map"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "insertUnformatted",
+                    "type": "boolean",
+                    "label": "Unformatted",
+                    "required": true
+                  },
+                  {
+                    "name": "valueInputOption",
+                    "type": "select",
+                    "label": "Value input option",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "USER_ENTERED",
+                        "RAW"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "insertDataOption",
+                    "type": "select",
+                    "label": "Insert data option",
+                    "validate": {
+                      "enum": [
+                        "INSERT_ROWS",
+                        "OVERWRITE"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "spreadsheetId",
+                    "type": "text",
+                    "label": "Spreadsheet ID",
+                    "required": true
+                  },
+                  {
+                    "name": "sheetId",
+                    "type": "text",
+                    "label": "Sheet Name",
+                    "required": true
+                  },
+                  {
+                    "name": "tableFirstRow",
+                    "type": "select",
+                    "label": "Column range",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "A1:Z1",
+                        "A1:BZ1",
+                        "A1:CZ1",
+                        "A1:DZ1",
+                        "A1:MZ1",
+                        "A1:ZZ1"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "values",
+                    "spec": [
+                      {
+                        "name": "0",
+                        "type": "text",
+                        "label": "A"
+                      },
+                      {
+                        "name": "1",
+                        "type": "text",
+                        "label": "B"
+                      },
+                      {
+                        "name": "2",
+                        "type": "text",
+                        "label": "C"
+                      },
+                      {
+                        "name": "3",
+                        "type": "text",
+                        "label": "D"
+                      },
+                      {
+                        "name": "4",
+                        "type": "text",
+                        "label": "E"
+                      },
+                      {
+                        "name": "5",
+                        "type": "text",
+                        "label": "F"
+                      },
+                      {
+                        "name": "6",
+                        "type": "text",
+                        "label": "G"
+                      },
+                      {
+                        "name": "7",
+                        "type": "text",
+                        "label": "H"
+                      },
+                      {
+                        "name": "8",
+                        "type": "text",
+                        "label": "I"
+                      },
+                      {
+                        "name": "9",
+                        "type": "text",
+                        "label": "J"
+                      },
+                      {
+                        "name": "10",
+                        "type": "text",
+                        "label": "K"
+                      },
+                      {
+                        "name": "11",
+                        "type": "text",
+                        "label": "L"
+                      },
+                      {
+                        "name": "12",
+                        "type": "text",
+                        "label": "M"
+                      },
+                      {
+                        "name": "13",
+                        "type": "text",
+                        "label": "N"
+                      },
+                      {
+                        "name": "14",
+                        "type": "text",
+                        "label": "O"
+                      },
+                      {
+                        "name": "15",
+                        "type": "text",
+                        "label": "P"
+                      },
+                      {
+                        "name": "16",
+                        "type": "text",
+                        "label": "Q"
+                      },
+                      {
+                        "name": "17",
+                        "type": "text",
+                        "label": "R"
+                      },
+                      {
+                        "name": "18",
+                        "type": "text",
+                        "label": "S"
+                      },
+                      {
+                        "name": "19",
+                        "type": "text",
+                        "label": "T"
+                      },
+                      {
+                        "name": "20",
+                        "type": "text",
+                        "label": "U"
+                      },
+                      {
+                        "name": "21",
+                        "type": "text",
+                        "label": "V"
+                      },
+                      {
+                        "name": "22",
+                        "type": "text",
+                        "label": "W"
+                      },
+                      {
+                        "name": "23",
+                        "type": "text",
+                        "label": "X"
+                      },
+                      {
+                        "name": "24",
+                        "type": "text",
+                        "label": "Y"
+                      },
+                      {
+                        "name": "25",
+                        "type": "text",
+                        "label": "Z"
+                      }
+                    ],
+                    "type": "collection",
+                    "label": "Values in columns"
+                  }
+                ]
+              },
+              "onerror": [
+                {
+                  "id": 27,
+                  "module": "builtin:Resume",
+                  "version": 1,
+                  "metadata": {
+                    "designer": {
+                      "x": 3300,
+                      "y": 0
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": 11,
+              "module": "slack:CreateMessage",
+              "version": 4,
+              "parameters": {
+                "__IMTCONN__": "{{CONNECTION}}"
+              },
+              "mapper": {
+                "text": "MarketMorning {{if(2.`4` = 0; \"ok\"; if((if(7.id; 1; 0) + if(2.`4` < 2; 0; if(8.id; 1; 0)) + if(2.`4` < 3; 0; if(9.id; 1; 0))) = 0; \"failed\"; if((if(7.id; 1; 0) + if(2.`4` < 2; 0; if(8.id; 1; 0)) + if(2.`4` < 3; 0; if(9.id; 1; 0))) < 2.`4`; \"partial\"; if(6.source = \"fallback\"; \"ok_no_ai\"; \"ok\"))))}}: attempted {{2.`3`}} subscribers, {{if(7.id; 1; 0) + if(2.`4` < 2; 0; if(8.id; 1; 0)) + if(2.`4` < 3; 0; if(9.id; 1; 0))}}/{{2.`4`}} batches delivered. {{if(6.source = \"fallback\"; \"AI fallback. \"; \"\")}}{{if(3.data.Results.series[1].data[1].value; \"\"; \"No BLS data. \")}}{{if(4.data.bitcoin.usd; \"\"; \"No crypto data. \")}}{{if(length(ifempty(18.rss.channel[1].item; emptyarray)) = 0; \"No Fed feed. \"; \"\")}}",
+                "parse": false,
+                "mrkdwn": true,
+                "channel": "{{SLACK_ID}}",
+                "channelType": "public",
+                "channelWType": "list",
+                "unfurl_links": false,
+                "unfurl_media": false
+              },
+              "metadata": {
+                "designer": {
+                  "x": 3600,
+                  "y": -150,
+                  "name": "10 Report run"
+                },
+                "setupValidation": {
+                  "result": {
+                    "valid": true,
+                    "fields": []
+                  },
+                  "version": 1,
+                  "configuration": "4a68eaefa083accb"
+                },
+                "restore": {
+                  "expect": {
+                    "parse": {
+                      "mode": "chose"
+                    },
+                    "mrkdwn": {
+                      "mode": "chose"
+                    },
+                    "channel": {
+                      "mode": "chose",
+                      "label": "marketmorning-alerts"
+                    },
+                    "link_names": {
+                      "mode": "chose"
+                    },
+                    "channelType": {
+                      "label": "Public channel"
+                    },
+                    "channelWType": {
+                      "label": "Select from the list"
+                    },
+                    "unfurl_links": {
+                      "mode": "chose"
+                    },
+                    "unfurl_media": {
+                      "mode": "chose"
+                    },
+                    "reply_broadcast": {
+                      "mode": "chose"
+                    }
+                  },
+                  "parameters": {
+                    "__IMTCONN__": {
+                      "data": {
+                        "scoped": "true",
+                        "connection": "{{CONNECTION}}"
+                      },
+                      "label": "{{CONNECTION}}"
+                    }
+                  }
+                },
+                "parameters": [
+                  {
+                    "name": "__IMTCONN__",
+                    "type": "account:slack2,slack3",
+                    "label": "Connection",
+                    "required": true
+                  }
+                ],
+                "expect": [
+                  {
+                    "name": "channelWType",
+                    "type": "select",
+                    "label": "Enter a channel ID or name",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "manualy",
+                        "list"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "text",
+                    "type": "text",
+                    "label": "Text"
+                  },
+                  {
+                    "name": "blocks",
+                    "type": "text",
+                    "label": "Blocks"
+                  },
+                  {
+                    "name": "thread_ts",
+                    "type": "text",
+                    "label": "Thread message ID (time stamp)"
+                  },
+                  {
+                    "name": "reply_broadcast",
+                    "type": "boolean",
+                    "label": "Reply broadcast"
+                  },
+                  {
+                    "name": "link_names",
+                    "type": "boolean",
+                    "label": "Link names"
+                  },
+                  {
+                    "name": "parse",
+                    "type": "boolean",
+                    "label": "Parse message text"
+                  },
+                  {
+                    "name": "mrkdwn",
+                    "type": "boolean",
+                    "label": "Use markdown"
+                  },
+                  {
+                    "name": "unfurl_links",
+                    "type": "boolean",
+                    "label": "Unfurl primarily text-based content"
+                  },
+                  {
+                    "name": "unfurl_media",
+                    "type": "boolean",
+                    "label": "Unfurl media content"
+                  },
+                  {
+                    "name": "icon_emoji",
+                    "type": "text",
+                    "label": "Icon emoji"
+                  },
+                  {
+                    "name": "icon_url",
+                    "type": "url",
+                    "label": "Icon url"
+                  },
+                  {
+                    "name": "username",
+                    "type": "text",
+                    "label": "User name"
+                  },
+                  {
+                    "name": "channelType",
+                    "type": "select",
+                    "label": "Channel type",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "public",
+                        "private",
+                        "im",
+                        "mpim"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "channel",
+                    "type": "select",
+                    "label": "Public channel",
+                    "required": true
+                  }
+                ]
+              },
+              "onerror": [
+                {
+                  "id": 28,
+                  "module": "builtin:Ignore",
+                  "version": 1,
+                  "metadata": {
+                    "designer": {
+                      "x": 3600,
+                      "y": 0
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "flow": [
+            {
+              "id": 12,
+              "module": "google-sheets:addRow",
+              "version": 2,
+              "parameters": {
+                "__IMTCONN__": "{{CONNECTION}}"
+              },
+              "filter": {
+                "name": "Skip",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{2.`0`}}",
+                      "b": "TRUE",
+                      "o": "text:notequal"
+                    }
+                  ],
+                  [
+                    {
+                      "a": "{{length(ifempty(18.rss.channel[1].item; emptyarray)) + if(4.data.bitcoin.usd; 1; 0) + if(3.data.Results.series[1].data[1].value; 1; 0)}}",
+                      "b": "0",
+                      "o": "number:equal"
+                    }
+                  ]
+                ]
+              },
+              "mapper": {
+                "mode": "map",
+                "values": {
+                  "0": "{{formatDate(now; \"YYYY-MM-DD\"; \"America/New_York\")}}",
+                  "1": "{{2.`3`}}",
+                  "2": "0",
+                  "3": "skipped",
+                  "4": "send disabled or no content"
+                },
+                "sheetId": "SendLog",
+                "spreadsheetId": "{{SHEET_ID}}",
+                "tableFirstRow": "A1:Z1",
+                "insertDataOption": "INSERT_ROWS",
+                "valueInputOption": "USER_ENTERED",
+                "insertUnformatted": false
+              },
+              "metadata": {
+                "designer": {
+                  "x": 1800,
+                  "y": 300,
+                  "name": "11 Log skip"
+                },
+                "setupValidation": {
+                  "result": {
+                    "valid": true,
+                    "fields": []
+                  },
+                  "version": 1,
+                  "configuration": "8568703706aeb2f0"
+                },
+                "restore": {
+                  "expect": {
+                    "mode": {
+                      "label": "Enter manually"
+                    },
+                    "tableFirstRow": {
+                      "label": "A-Z",
+                      "nested": [
+                        {
+                          "name": "values",
+                          "spec": [
+                            {
+                              "name": "0",
+                              "type": "text",
+                              "label": "A"
+                            },
+                            {
+                              "name": "1",
+                              "type": "text",
+                              "label": "B"
+                            },
+                            {
+                              "name": "2",
+                              "type": "text",
+                              "label": "C"
+                            },
+                            {
+                              "name": "3",
+                              "type": "text",
+                              "label": "D"
+                            },
+                            {
+                              "name": "4",
+                              "type": "text",
+                              "label": "E"
+                            },
+                            {
+                              "name": "5",
+                              "type": "text",
+                              "label": "F"
+                            },
+                            {
+                              "name": "6",
+                              "type": "text",
+                              "label": "G"
+                            },
+                            {
+                              "name": "7",
+                              "type": "text",
+                              "label": "H"
+                            },
+                            {
+                              "name": "8",
+                              "type": "text",
+                              "label": "I"
+                            },
+                            {
+                              "name": "9",
+                              "type": "text",
+                              "label": "J"
+                            },
+                            {
+                              "name": "10",
+                              "type": "text",
+                              "label": "K"
+                            },
+                            {
+                              "name": "11",
+                              "type": "text",
+                              "label": "L"
+                            },
+                            {
+                              "name": "12",
+                              "type": "text",
+                              "label": "M"
+                            },
+                            {
+                              "name": "13",
+                              "type": "text",
+                              "label": "N"
+                            },
+                            {
+                              "name": "14",
+                              "type": "text",
+                              "label": "O"
+                            },
+                            {
+                              "name": "15",
+                              "type": "text",
+                              "label": "P"
+                            },
+                            {
+                              "name": "16",
+                              "type": "text",
+                              "label": "Q"
+                            },
+                            {
+                              "name": "17",
+                              "type": "text",
+                              "label": "R"
+                            },
+                            {
+                              "name": "18",
+                              "type": "text",
+                              "label": "S"
+                            },
+                            {
+                              "name": "19",
+                              "type": "text",
+                              "label": "T"
+                            },
+                            {
+                              "name": "20",
+                              "type": "text",
+                              "label": "U"
+                            },
+                            {
+                              "name": "21",
+                              "type": "text",
+                              "label": "V"
+                            },
+                            {
+                              "name": "22",
+                              "type": "text",
+                              "label": "W"
+                            },
+                            {
+                              "name": "23",
+                              "type": "text",
+                              "label": "X"
+                            },
+                            {
+                              "name": "24",
+                              "type": "text",
+                              "label": "Y"
+                            },
+                            {
+                              "name": "25",
+                              "type": "text",
+                              "label": "Z"
+                            }
+                          ],
+                          "type": "collection",
+                          "label": "Values in columns"
+                        }
+                      ]
+                    },
+                    "insertDataOption": {
+                      "mode": "chose",
+                      "label": "Insert rows"
+                    },
+                    "valueInputOption": {
+                      "mode": "chose",
+                      "label": "User entered"
+                    },
+                    "insertUnformatted": {
+                      "mode": "chose"
+                    }
+                  },
+                  "parameters": {
+                    "__IMTCONN__": {
+                      "data": {
+                        "scoped": "true",
+                        "connection": "{{CONNECTION}}"
+                      },
+                      "label": "{{CONNECTION}}"
+                    }
+                  }
+                },
+                "parameters": [
+                  {
+                    "name": "__IMTCONN__",
+                    "type": "account:google",
+                    "label": "Connection",
+                    "required": true
+                  }
+                ],
+                "expect": [
+                  {
+                    "name": "mode",
+                    "type": "select",
+                    "label": "Search Method",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "select",
+                        "fromAll",
+                        "map"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "insertUnformatted",
+                    "type": "boolean",
+                    "label": "Unformatted",
+                    "required": true
+                  },
+                  {
+                    "name": "valueInputOption",
+                    "type": "select",
+                    "label": "Value input option",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "USER_ENTERED",
+                        "RAW"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "insertDataOption",
+                    "type": "select",
+                    "label": "Insert data option",
+                    "validate": {
+                      "enum": [
+                        "INSERT_ROWS",
+                        "OVERWRITE"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "spreadsheetId",
+                    "type": "text",
+                    "label": "Spreadsheet ID",
+                    "required": true
+                  },
+                  {
+                    "name": "sheetId",
+                    "type": "text",
+                    "label": "Sheet Name",
+                    "required": true
+                  },
+                  {
+                    "name": "tableFirstRow",
+                    "type": "select",
+                    "label": "Column range",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "A1:Z1",
+                        "A1:BZ1",
+                        "A1:CZ1",
+                        "A1:DZ1",
+                        "A1:MZ1",
+                        "A1:ZZ1"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "values",
+                    "spec": [
+                      {
+                        "name": "0",
+                        "type": "text",
+                        "label": "A"
+                      },
+                      {
+                        "name": "1",
+                        "type": "text",
+                        "label": "B"
+                      },
+                      {
+                        "name": "2",
+                        "type": "text",
+                        "label": "C"
+                      },
+                      {
+                        "name": "3",
+                        "type": "text",
+                        "label": "D"
+                      },
+                      {
+                        "name": "4",
+                        "type": "text",
+                        "label": "E"
+                      },
+                      {
+                        "name": "5",
+                        "type": "text",
+                        "label": "F"
+                      },
+                      {
+                        "name": "6",
+                        "type": "text",
+                        "label": "G"
+                      },
+                      {
+                        "name": "7",
+                        "type": "text",
+                        "label": "H"
+                      },
+                      {
+                        "name": "8",
+                        "type": "text",
+                        "label": "I"
+                      },
+                      {
+                        "name": "9",
+                        "type": "text",
+                        "label": "J"
+                      },
+                      {
+                        "name": "10",
+                        "type": "text",
+                        "label": "K"
+                      },
+                      {
+                        "name": "11",
+                        "type": "text",
+                        "label": "L"
+                      },
+                      {
+                        "name": "12",
+                        "type": "text",
+                        "label": "M"
+                      },
+                      {
+                        "name": "13",
+                        "type": "text",
+                        "label": "N"
+                      },
+                      {
+                        "name": "14",
+                        "type": "text",
+                        "label": "O"
+                      },
+                      {
+                        "name": "15",
+                        "type": "text",
+                        "label": "P"
+                      },
+                      {
+                        "name": "16",
+                        "type": "text",
+                        "label": "Q"
+                      },
+                      {
+                        "name": "17",
+                        "type": "text",
+                        "label": "R"
+                      },
+                      {
+                        "name": "18",
+                        "type": "text",
+                        "label": "S"
+                      },
+                      {
+                        "name": "19",
+                        "type": "text",
+                        "label": "T"
+                      },
+                      {
+                        "name": "20",
+                        "type": "text",
+                        "label": "U"
+                      },
+                      {
+                        "name": "21",
+                        "type": "text",
+                        "label": "V"
+                      },
+                      {
+                        "name": "22",
+                        "type": "text",
+                        "label": "W"
+                      },
+                      {
+                        "name": "23",
+                        "type": "text",
+                        "label": "X"
+                      },
+                      {
+                        "name": "24",
+                        "type": "text",
+                        "label": "Y"
+                      },
+                      {
+                        "name": "25",
+                        "type": "text",
+                        "label": "Z"
+                      }
+                    ],
+                    "type": "collection",
+                    "label": "Values in columns"
+                  }
+                ]
+              },
+              "onerror": [
+                {
+                  "id": 23,
+                  "module": "builtin:Resume",
+                  "version": 1,
+                  "metadata": {
+                    "designer": {
+                      "x": 1800,
+                      "y": 450
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": 13,
+              "module": "slack:CreateMessage",
+              "version": 4,
+              "parameters": {
+                "__IMTCONN__": "{{CONNECTION}}"
+              },
+              "mapper": {
+                "text": "MarketMorning SKIPPED: SEND_ENABLED off, or the Fed feed, BLS and CoinGecko all empty.",
+                "parse": false,
+                "mrkdwn": true,
+                "channel": "{{SLACK_ID}}",
+                "channelType": "public",
+                "channelWType": "list",
+                "unfurl_links": false,
+                "unfurl_media": false
+              },
+              "metadata": {
+                "designer": {
+                  "x": 2100,
+                  "y": 300,
+                  "name": "12 Alert skip"
+                },
+                "setupValidation": {
+                  "result": {
+                    "valid": true,
+                    "fields": []
+                  },
+                  "version": 1,
+                  "configuration": "c87bf9b715765d3f"
+                },
+                "restore": {
+                  "expect": {
+                    "parse": {
+                      "mode": "chose"
+                    },
+                    "mrkdwn": {
+                      "mode": "chose"
+                    },
+                    "channel": {
+                      "mode": "chose",
+                      "label": "marketmorning-alerts"
+                    },
+                    "link_names": {
+                      "mode": "chose"
+                    },
+                    "channelType": {
+                      "label": "Public channel"
+                    },
+                    "channelWType": {
+                      "label": "Select from the list"
+                    },
+                    "unfurl_links": {
+                      "mode": "chose"
+                    },
+                    "unfurl_media": {
+                      "mode": "chose"
+                    },
+                    "reply_broadcast": {
+                      "mode": "chose"
+                    }
+                  },
+                  "parameters": {
+                    "__IMTCONN__": {
+                      "data": {
+                        "scoped": "true",
+                        "connection": "{{CONNECTION}}"
+                      },
+                      "label": "{{CONNECTION}}"
+                    }
+                  }
+                },
+                "parameters": [
+                  {
+                    "name": "__IMTCONN__",
+                    "type": "account:slack2,slack3",
+                    "label": "Connection",
+                    "required": true
+                  }
+                ],
+                "expect": [
+                  {
+                    "name": "channelWType",
+                    "type": "select",
+                    "label": "Enter a channel ID or name",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "manualy",
+                        "list"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "text",
+                    "type": "text",
+                    "label": "Text"
+                  },
+                  {
+                    "name": "blocks",
+                    "type": "text",
+                    "label": "Blocks"
+                  },
+                  {
+                    "name": "thread_ts",
+                    "type": "text",
+                    "label": "Thread message ID (time stamp)"
+                  },
+                  {
+                    "name": "reply_broadcast",
+                    "type": "boolean",
+                    "label": "Reply broadcast"
+                  },
+                  {
+                    "name": "link_names",
+                    "type": "boolean",
+                    "label": "Link names"
+                  },
+                  {
+                    "name": "parse",
+                    "type": "boolean",
+                    "label": "Parse message text"
+                  },
+                  {
+                    "name": "mrkdwn",
+                    "type": "boolean",
+                    "label": "Use markdown"
+                  },
+                  {
+                    "name": "unfurl_links",
+                    "type": "boolean",
+                    "label": "Unfurl primarily text-based content"
+                  },
+                  {
+                    "name": "unfurl_media",
+                    "type": "boolean",
+                    "label": "Unfurl media content"
+                  },
+                  {
+                    "name": "icon_emoji",
+                    "type": "text",
+                    "label": "Icon emoji"
+                  },
+                  {
+                    "name": "icon_url",
+                    "type": "url",
+                    "label": "Icon url"
+                  },
+                  {
+                    "name": "username",
+                    "type": "text",
+                    "label": "User name"
+                  },
+                  {
+                    "name": "channelType",
+                    "type": "select",
+                    "label": "Channel type",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "public",
+                        "private",
+                        "im",
+                        "mpim"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "channel",
+                    "type": "select",
+                    "label": "Public channel",
+                    "required": true
+                  }
+                ]
+              },
+              "onerror": [
+                {
+                  "id": 29,
+                  "module": "builtin:Ignore",
+                  "version": 1,
+                  "metadata": {
+                    "designer": {
+                      "x": 2100,
+                      "y": 450
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "instant": false,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "slots": null,
+      "confidential": true,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": {
+      "orphans": []
+    },
+    "zone": "eu1.make.com",
+    "notes": []
+  }
+}

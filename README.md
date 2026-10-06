@@ -19,27 +19,32 @@ Every weekday at 08:00 New York time, one email reaches every subscriber:
 
 Numbers come from the sources, never from the AI. If the AI fails, a plain brief still goes out, and its footer says so. If a source fails, only its own section disappears.
 
-![Digest email](docs/img/digest.png) <!-- screenshot placeholder -->
-![Make scenario](docs/img/scenario.png) <!-- screenshot placeholder -->
-![Owner dashboard](docs/img/dashboard.png) <!-- screenshot placeholder -->
+**Demo video (47 s):** [demo.mp4](demo.mp4): signup with double opt-in → Make scenario → Slack run report → the digest in Gmail.
+
+| The weekday digest | The Make scenario |
+|---|---|
+| ![Digest email](docs/img/digest.png) | ![Make scenario](docs/img/scenario.png) |
+| **Signup section on the site** | **Slack run report** |
+| ![Signup section](docs/img/site.png) | ![Slack run report](docs/img/slack.png) |
 
 ## Architecture
 ```mermaid
 flowchart LR
-  V[Visitor] --> S[Site + Vercel functions] -->|service account| G[(Google Sheet)]
+  V[Visitor] --> S[Site + Vercel functions] -->|Apps Script web app| G[(Google Sheet)]
   M[Make: 1 scenario, Mon–Fri 08:00 ET] --> G
   M --> B[BLS Public Data API] & FR[Fed speeches] & C[CoinGecko crypto] & AI[Gemini] & SL[Slack alert]
   M -->|Gmail, BCC batches| R[Subscribers]
 ```
-- **Signup:** double opt-in, signed expiring links, honeypot and rate limit. It runs on Vercel, writes to the Sheet, and never uses Make credits.
+- **Signup:** double opt-in, signed expiring links, honeypot and rate limit. It runs as Vercel functions that reach the Sheet through a small Apps Script web app (no Google Cloud project), and never uses Make credits.
 - **Brief:** one Make scenario reads three official or licensed feeds and makes one Gemini call. A lighter model retries if that call fails. It then sends up to 3 BCC batches. That is 12 credits on a normal run and 15 in the worst case, so at most 345 a month.
 - **Limits:** the 300-subscriber cap comes from Gmail's 500 recipients per day. People who sign up after that go on a waitlist and are promoted automatically.
-- **Local preview:** `node tools/preview-digest.mjs --sample` renders the exact email for 0 credits.
+- **Build by import:** `node tools/build-blueprint.mjs` generates the whole scenario as a Make blueprint (IDs, expressions, email HTML and prompt included), so a rebuild is one import, not hours of clicking.
+- **Local preview:** `node tools/preview-digest.mjs --sample` renders the exact email for 0 credits, and every digest is checked against [docs/QA.md](docs/QA.md).
 
-Details: [PRD](docs/PRD.md) · [Architecture](docs/ARCHITECTURE.md) · [Data licensing](docs/DATA-SOURCES.md) · [Sheet](docs/SHEET.md) · [Build order](docs/BUILD-ORDER.md) · [Maia build guide](docs/MAIA-PROMPTS.md)
+Details: [PRD](docs/PRD.md) · [Architecture](docs/ARCHITECTURE.md) · [Data licensing](docs/DATA-SOURCES.md) · [Sheet](docs/SHEET.md) · [Site functions](docs/SITE.md) · [Build order](docs/BUILD-ORDER.md) · [Import guide](docs/IMPORT.md) · [QA](docs/QA.md)
 
 ## Tech stack
-Make.com (Free) · Google Sheets · Gemini API (free tier, structured output) · BLS Public Data API · Federal Reserve RSS · CoinGecko API (Demo) · QuickChart · Gmail · Vercel serverless functions (Node) · Slack
+Make.com (Free) · Google Sheets + Apps Script · Gemini API (free tier, structured output) · BLS Public Data API · Federal Reserve RSS · CoinGecko API (Demo) · QuickChart · Gmail · Vercel serverless functions (Node) · Slack
 
 ## Notes
 - Economic data: U.S. Bureau of Labor Statistics. Fed speeches: Federal Reserve Board. MarketMorning is not affiliated with either. Crypto data [powered by CoinGecko](https://www.coingecko.com/en/api).

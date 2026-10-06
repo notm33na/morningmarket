@@ -8,4 +8,6 @@
 | [DATA-SOURCES.md](DATA-SOURCES.md) | Data licensing and reliability research, and the final source decision |
 | [SHEET.md](SHEET.md) | Exact Google Sheet tabs and formulas |
 | [BUILD-ORDER.md](BUILD-ORDER.md) | Step-by-step build with pass/fail checks and pre-chosen fallbacks |
-| [MAIA-PROMPTS.md](MAIA-PROMPTS.md) | Maia prompts and by-hand steps to build the Make scenario in ID order, with checks and test credits |
+| [IMPORT.md](IMPORT.md) | Build the Make scenario by importing the generated blueprint (default) |
+| [QA.md](QA.md) | Pass/fail checklist for every digest preview |
+| [MAIA-PROMPTS.md](MAIA-PROMPTS.md) | Step 8: test runs and credits (Steps 1–7, the Maia build, are superseded by IMPORT.md) |

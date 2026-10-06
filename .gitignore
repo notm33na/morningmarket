@@ -9,3 +9,7 @@ node_modules/
 *.sa.json
 service-account*.json
 marketmorning-[0-9a-f][0-9a-f][0-9a-f]*.json
+
+# Local AI-assistant tooling (kept on disk, not published)
+CLAUDE.md
+.claude/

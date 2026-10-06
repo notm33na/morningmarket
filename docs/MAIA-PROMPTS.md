@@ -1,10 +1,12 @@
 # Building the scenario with Maia
 
+> **Superseded (2026-10-06)** by the blueprint import in [IMPORT.md](IMPORT.md). Steps 1–7 below are not maintained: they predate C13b (no R2, new `SENT`), C21 (`Feed!A2:L2`) and C22 (`18.rss.channel[1].item[N].title[1]`), so use `tools/build-blueprint.mjs` output as the reference for every value. **Step 8 (test runs) is still current.**
+
 How to build the MarketMorning scenario with Maia (Make's AI scenario builder), following [BUILD-ORDER](BUILD-ORDER.md) §4 and [ARCHITECTURE](ARCHITECTURE.md) §2. There are **6 Maia prompts**; everything else is done by hand.
 
 **Before you start**
 1. The Google Sheet is built with `tools/sheet-setup.gs` per [SHEET.md](SHEET.md) (Feed row 2 shows values in A–L), and you have its ID.
-2. Make connections exist: Google Sheets and Gmail (Sign in with Google), and Slack (the same workspace as LeadFlow).
+2. Make connections exist: Google Sheets and Gmail (Sign in with Google), and Slack (bot connection).
 3. Your Gemini and CoinGecko Demo API keys are ready for two API-key keychains: "Gemini" (header `x-goog-api-key`) and "CoinGecko" (header `x-cg-demo-api-key`). Create them when Maia stops and asks.
 4. The Subscribers tab has 3 rows you typed yourself: `{{TEST_EMAIL+mm1}}`, `+mm2` and `+mm3` (your real plus-addresses), each with status `active`.
 5. An empty scenario "MarketMorning" exists and stays **OFF** until BUILD-ORDER §7.
@@ -33,7 +35,7 @@ How to build the MarketMorning scenario with Maia (Make's AI scenario builder), 
 ```
 In the scenario "MarketMorning", create exactly three modules, in this order, linked in a chain 1 → 2 → 3. Do not create any other modules, routers, filters or error handlers. Do not run or activate the scenario. If a connection or keychain is needed, stop and ask me. Rename each module to the label I give.
 
-Module 1 – Google Sheets › Get Range Values. Label: "1 Read Feed". Connection: my Google Sheets connection (ask me). Search method: Enter manually. Spreadsheet ID: [TYPE SHEET ID HERE YOURSELF]. Sheet name: Feed. Range: A1:L2. Table contains headers: Yes.
+Module 1 – Google Sheets › Get Range Values. Label: "1 Read Feed". Connection: my Google Sheets connection (ask me). Search method: Enter manually. Spreadsheet ID: [TYPE SHEET ID HERE YOURSELF]. Sheet name: Feed. Range: A2:L2. Table contains headers: No.
 
 Module 2 – HTTP › Make a request. Label: "2 BLS latest numbers". URL: https://api.bls.gov/publicAPI/v2/timeseries/data/ . Method: POST. Authentication: none. Header: User-Agent = MarketMorning portfolio demo. Body content type: application/json, input method JSON string, body: {} (I will paste the real body). Parse response: Yes. Timeout: 20 seconds. Return error if HTTP request fails: Yes.
 
@@ -110,9 +112,9 @@ Module 12 – Slack › Create a Message. Label: "12 Alert skip". Connection: my
   - **Module 9, status:**
     `` {{if(2.`4` = 0; "ok"; if((if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)) = 0; "failed"; if((if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)) < 2.`4`; "partial"; if(6.source = "fallback"; "ok_no_ai"; "ok"))))}} ``
   - **Module 9, error:**
-    `` {{if(6.source = "fallback"; "AI fallback. "; "")}}{{if(3.data.Results.series[1].data[1].value; ""; "No BLS data. ")}}{{if(4.data.bitcoin.usd; ""; "No crypto data. ")}}{{if(length(ifempty(18.rss.channel.item; emptyarray)) = 0; "No Fed feed. "; "")}}{{if((if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)) < 2.`4`; "Batch failures. "; "")}} ``
+    `` {{if(6.source = "fallback"; "AI fallback. "; "")}}{{if(3.data.Results.series[1].data[1].value; ""; "No BLS data. ")}}{{if(4.data.bitcoin.usd; ""; "No crypto data. ")}}{{if(length(ifempty(18.rss.channel[1].item; emptyarray)) = 0; "No Fed feed. "; "")}}{{if((if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)) < 2.`4`; "Batch failures. "; "")}} ``
   - **Module 10, text:**
-    `` MarketMorning {{if(2.`4` = 0; "ok"; if((if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)) = 0; "failed"; if((if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)) < 2.`4`; "partial"; if(6.source = "fallback"; "ok_no_ai"; "ok"))))}}: attempted {{2.`3`}} subscribers, {{if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)}}/{{2.`4`}} batches delivered. {{if(6.source = "fallback"; "AI fallback. "; "")}}{{if(3.data.Results.series[1].data[1].value; ""; "No BLS data. ")}}{{if(4.data.bitcoin.usd; ""; "No crypto data. ")}}{{if(length(ifempty(18.rss.channel.item; emptyarray)) = 0; "No Fed feed. "; "")}} ``
+    `` MarketMorning {{if(2.`4` = 0; "ok"; if((if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)) = 0; "failed"; if((if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)) < 2.`4`; "partial"; if(6.source = "fallback"; "ok_no_ai"; "ok"))))}}: attempted {{2.`3`}} subscribers, {{if(7.id; 1; 0) + if(8.id; 1; 0) + if(9.id; 1; 0)}}/{{2.`4`}} batches delivered. {{if(6.source = "fallback"; "AI fallback. "; "")}}{{if(3.data.Results.series[1].data[1].value; ""; "No BLS data. ")}}{{if(4.data.bitcoin.usd; ""; "No crypto data. ")}}{{if(length(ifempty(18.rss.channel[1].item; emptyarray)) = 0; "No Fed feed. "; "")}} ``
 - **If Gmail's output field isn't `id`** (for example `Message ID`), replace every `7.id`, `8.id` and `9.id` in modules 9 and 10 with that field.
 
 **Check after Maia:** IDs 1–8 unchanged; new IDs 9–12; sheet names; channel IDs typed by you.
@@ -163,7 +165,7 @@ If C22 shows a different path, apply its fallback, then run `node tools/preview-
 3. On route 2's wrench, choose **Set up a filter**: name "Skip", and tick **Fallback route**.
 4. On route 1 (R1 → 4), set the filter **"Content OK"**. It is one AND group with two conditions:
    - `` {{2.`0`}} `` **Text: Equal to** `TRUE`
-   - AND `{{length(ifempty(18.rss.channel.item; emptyarray)) + if(4.data.bitcoin.usd; 1; 0) + if(3.data.Results.series[1].data[1].value; 1; 0)}}` **Numeric: Greater than** `0`
+   - AND `{{length(ifempty(18.rss.channel[1].item; emptyarray)) + if(4.data.bitcoin.usd; 1; 0) + if(3.data.Results.series[1].data[1].value; 1; 0)}}` **Numeric: Greater than** `0`
 
    (C13.)
 
@@ -227,7 +229,7 @@ Restore every change after each test. Note each run's duration for C15: compare 
 | 3 | Bad JSON (3) | module 5 JSON string `{` | C14b (Resume) | 13 | 47 |
 | 4 | Main model fails, fallback answers (3b) | Config GEMINI_MODEL = `x` | C14b (15 succeeds) | 16 | 63 |
 | 5 | BLS broken (4) | module 2 URL `…/timeseries/datax/` (404) | Resume path | 13 | 76 |
-| 6 | CoinGecko down (5) | keychain key = `x` | C20 | 13 | 89 |
+| 6 | CoinGecko down (5) | module 3 URL `…/simple/pricex?…` (404; a missing or bad key does not fail: the public API answers without one) | C20 | 13 | 89 |
 | 7 | Fed feed down (6) | module 16 URL `…/speeches-x.xml` | – | 13 | 102 |
 | 8 | All three sources down (7) | tests 5, 6 and 7 together | C13 (fallback route) | 8 | 110 |
 | 9 | Send disabled (7) | Config SEND_ENABLED = FALSE | – | 8 | 118 |

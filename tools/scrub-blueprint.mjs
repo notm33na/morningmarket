@@ -36,9 +36,10 @@ const LEAKS = [
   [/registrationkey\\?"\s*:\s*\\?"(?!\{\{|\[)[0-9a-f]{16,}/i, 'BLS API key'],
   [/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/, 'email address'],
   [/\b(?:gemini|gemma|learnlm)-(?:\d|flash|pro|exp|nano)[\w.-]*/i, 'Gemini model name'],
-  [/\/spreadsheets\/d\/(?!\{\{)|"spreadsheetId":\s*"(?!\{\{)/, 'Sheet ID'],
+  [/\/spreadsheets\/d\/(?!\{\{)[A-Za-z0-9_-]{25,}|"spreadsheetId":\s*"(?!\{\{)/, 'Sheet ID'], // 25+: Make's help text has a short sample ID
   [/"(channel|channelId|team\w*)":\s*"[CGDTU][A-Z0-9]{8,}"/, 'Slack channel/team ID'],
   [/"(__IMT\w*__|\w*keychain\w*|connection)":\s*\d/i, 'connection/keychain ID'],
+  [/"label":\s*"[^"]*(?:'s |\.slack\.com)[^"]*"/i, 'connection label (owner name or workspace)'],
 ];
 
 function scrubString(s, key) {
@@ -57,6 +58,8 @@ function scrubString(s, key) {
 function scrub(node, key = '') {
   if (Array.isArray(node)) return node.map((v) => scrub(v, key));
   if (node && typeof node === 'object') {
+    // Connection/keychain labels in metadata.restore name the owner and the Slack workspace
+    if (ID_KEYS.test(key) && typeof node.label === 'string') return { ...scrub({ ...node, label: '' }), label: '{{CONNECTION}}' };
     // HTTP headers/query items are {name, value}: redact the value when the name looks like a credential
     const secretPair = typeof node.name === 'string' && /key|token|secret|authorization|password/i.test(node.name) && typeof node.value === 'string' && !node.value.includes('{{');
     return Object.fromEntries(Object.entries(node).map(([k, v]) => [k, secretPair && k === 'value' ? '{{REDACTED}}' : scrub(v, k)]));

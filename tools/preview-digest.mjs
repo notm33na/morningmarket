@@ -8,7 +8,7 @@
 //
 // Renders templates/digest-email.html and prompts/gemini-user.make.txt with a small
 // evaluator for the Make expressions they use, so the preview sends and shows what Make will.
-// Output: tests/previews/<date>[.sample[-variant]].html + .input.json (for the digest-qa agent).
+// Output: tests/previews/<date>[.sample[-variant]].html + .input.json (for the checklist in docs/QA.md).
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -19,7 +19,7 @@ const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 const args = new Set(process.argv.slice(2));
 const SAMPLE = args.has('--sample');
 const VARIANT = [...args].find((a) => a.startsWith('--variant='))?.split('=')[1] ?? '';
-const FROM = [...args].find((a) => a.startsWith('--from='))?.slice(7) ?? ''; // dir with bls.rss, coingecko.json, fed.xml, gemini-output.json
+const FROM = [...args].find((a) => a.startsWith('--from='))?.slice(7) ?? ''; // dir with bls.json, coingecko.json, fed.xml, gemini-output.json
 if (VARIANT && !['no-crypto', 'no-bls', 'no-fed', 'ai-fallback'].includes(VARIANT)) throw new Error(`Unknown --variant=${VARIANT}`);
 
 const COINGECKO_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true';
@@ -190,6 +190,8 @@ function evaluate(node, ctx) {
     case 'lit': return node.v;
     case 'word':
       if (node.v === 'emptyarray') return [];
+      if (node.v === 'space') return ' ';
+      if (node.v === 'emptystring') return '';
       if (node.v === 'now') return ctx.now;
       if (node.v === 'true') return true;
       if (node.v === 'false') return false;
@@ -247,14 +249,16 @@ async function getText(url, headers = {}) {
   } catch (e) { console.warn(`  ${new URL(url).host}: ${e.message} -> treated as empty`); return undefined; }
 }
 
-// Mirrors Make's XML › Parse XML output for an RSS 2.0 feed: { rss: { channel: { item: [{ title, link, pubDate, ... }] } } }
+// Mirrors Make's XML › Parse XML output for an RSS 2.0 feed: { rss: { channel: [{ item: [{ title: [..], link: [..], pubDate: [..] }] }] } }
 function parseRss(xml) {
   if (!xml || !/<rss[\s>]/.test(xml)) return undefined;
   const text = (s) => (s ?? '').replace(/^\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*$/, '$1').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
   const item = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((m) => Object.fromEntries(
     ['title', 'link', 'pubDate', 'category', 'description'].map((k) => [k, text((m[1].match(new RegExp(`<${k}>([\\s\\S]*?)</${k}>`)) || [])[1])]),
   ));
-  return { rss: { channel: { item } } };
+  // Make's XML › Parse XML wraps every element in an array (C22, 2026-10-06): rss.channel[1].item[n].title[1]
+  const wrap = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== '').map(([k, v]) => [k, [v]]));
+  return { rss: { channel: [{ item: item.map(wrap) }] } };
 }
 
 async function callGemini(env, body) {
@@ -322,7 +326,8 @@ async function main() {
   const ctx = { now, bundles: { 2: feedRow, 3: { data: bls }, 4: { data: coingecko }, 18: fed } };
 
   // Router R1
-  const fedItems = fed?.rss?.channel?.item ?? [];
+  const fedItems = fed?.rss?.channel?.[0]?.item ?? [];
+  const unwrap = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v]));
   if (feed.send_enabled !== 'TRUE' || (fedItems.length === 0 && isEmpty(coingecko?.bitcoin?.usd) && isEmpty(blsSeries[0]?.data?.[0]?.value))) {
     console.log('SKIPPED (route B): no Fed feed, no crypto data and no BLS data.');
     return;
@@ -352,7 +357,7 @@ async function main() {
     feed: { ...feed, batch_1: '(redacted)' },
     bls,
     coingecko,
-    fed_speeches: fedItems,
+    fed_speeches: fedItems.map(unwrap), // plain { title, link, pubDate } for the QA checklist
     gemini_user_text: bodyJson.contents[0].parts[0].text,
     gemini_output: digest,
     ai_source: digest.source === 'fallback' ? 'fallback' : 'gemini',

@@ -122,7 +122,7 @@ function setupMarketMorning() {
   Logger.log(added.length ? `Config keys added: ${added.map((a) => a[0]).join(', ')}` : 'Config: all keys already present, values kept.');
   Logger.log(`Feed formulas: ${feed.length}; Dashboard formulas: ${metrics.length + 2}; charts: 3`);
   Logger.log(problems.length ? `Check these:\n${problems.join('\n')}` : 'No formula errors or placeholders left (batch_1..3 may be empty until Subscribers has active rows).');
-  Logger.log('Next: share the Sheet with the Vercel service account as Editor.');
+  Logger.log('Next: add site-sheet-api.gs as a second file, run setupSecret() and deploy it as a Web app (see its header).');
 }
 
 /** Only if you want the default Config back: overwrites every Config value. */

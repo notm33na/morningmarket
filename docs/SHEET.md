@@ -1,6 +1,6 @@
 # Google Sheet spec: "MarketMorning"
 
-Built by `tools/sheet-setup.gs` (keep both in sync; re-running it never overwrites Config values). File settings: **Locale United States, Time zone (GMT-05:00) New York**. Share the file as Editor with the Vercel service account email. Row 1 of every tab is the header row exactly as written. The Sheet holds no market data (see [DATA-SOURCES.md](DATA-SOURCES.md)).
+Built by `tools/sheet-setup.gs` (keep both in sync; re-running it never overwrites Config values). File settings: **Locale United States, Time zone (GMT-05:00) New York**. The site reaches it only through the Apps Script web app `tools/site-sheet-api.gs` (no sharing needed). Row 1 of every tab is the header row exactly as written. The Sheet holds no market data (see [DATA-SOURCES.md](DATA-SOURCES.md)).
 
 ## Config (A key, B value)
 | Key | Value |

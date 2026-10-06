@@ -52,7 +52,7 @@ Measured live on 2026-10-05; "weekdays with items" = distinct weekdays with a ne
 | Owner's PC (curl, Node, ~10 tries over hours) | 429s, 16 s responses, connection timeouts, one empty `{}` |
 | Make (3 tries, Run this module only) | 429 every time |
 | Google Apps Script (UrlFetchApp) | 429, then 200 with `{}` (0 articles) |
-| Claude Code test machine | mostly 429; one 200 with 0 articles |
+| Developer test machine | mostly 429; one 200 with 0 articles |
 
 Not one response with articles across four networks.
 

@@ -1,9 +1,9 @@
 # MarketMorning site: signup, unsubscribe, chart proxy
 
-Built in the site repo (plain HTML on Vercel). Referenced from [ARCHITECTURE.md](ARCHITECTURE.md) §4.
+Built in the site folder (`site/`, a sibling of this repo; plain HTML on Vercel, deployed with the Vercel CLI, see its README). Referenced from [ARCHITECTURE.md](ARCHITECTURE.md) §4.
 
-## Vercel functions (site repo, `/api/mm/*`, Node 20, `googleapis`, `nodemailer`, `@vercel/functions`)
-Env: `GOOGLE_SA_EMAIL`, `GOOGLE_SA_PRIVATE_KEY`, `MM_SHEET_ID`, `MM_HMAC_SECRET`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `SITE_URL`. Caps come from Config. All writes use `valueInputOption: RAW`. No logging of request bodies or emails. Static assets: `/mm/coingecko-logo.png` (from the CoinGecko Brand Kit), `/mm/chart-unavailable.png`.
+## Vercel functions (`/api/mm/*`, Node 24, `nodemailer`, `@vercel/functions`; Sheet via the Apps Script web app `tools/site-sheet-api.gs`, no Google Cloud)
+Env: `MM_SCRIPT_URL`, `MM_SCRIPT_SECRET`, `MM_HMAC_SECRET`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `SITE_URL`. Caps come from Config. All writes are stored as plain text (number format `@`), so input never becomes a formula. No logging of request bodies or emails. Static assets: `/mm/coingecko-logo.png` (from the CoinGecko Brand Kit), `/mm/chart-unavailable.png`.
 
 **Token** = `b64url(JSON{h,a,n,x}) + "." + b64url(HMAC_SHA256(MM_HMAC_SECRET, part1))`: `h` = first 32 hex of HMAC(secret, lowercased email) (also TxLog `email_hash`), `a` = `confirm`|`unsub`, `n` = row `token_nonce`, `x` = expiry (confirm 72 h, unsub 24 h). Verify with `timingSafeEqual`, matching `a`, `x` > now, row with matching `h` and `n`; then rotate the nonce.
 
@@ -18,7 +18,7 @@ Env: `GOOGLE_SA_EMAIL`, `GOOGLE_SA_PRIVATE_KEY`, `MM_SHEET_ID`, `MM_HMAC_SECRET`
 | POST /api/mm/unsubscribe | JSON `{email, website:""}` | If pending/active/waitlist and in budget: send link (`a=unsub`) via `waitUntil`, append TxLog. | Always 200 `{ok:true, message:"If that address is subscribed, we've emailed a confirmation link."}`; 400 bad syntax |
 | GET /api/mm/unsubscribe/confirm?t= | token | Read-only page with "Unsubscribe" POST button. | HTML |
 | POST /api/mm/unsubscribe/confirm | form `t` | Verify `a=unsub`. Set `unsubscribed`, `unsubscribed_at`; promote oldest `waitlist` (by confirmed_at) if below cap. | 303 → `/?mm=unsubscribed\|expired\|invalid\|error#marketmorning` |
-| GET /api/mm/chart?l=&v= | `l` = `[A-Z]{2,5}` comma list (≤ 10), `v` = same count of `-?\d{1,4}\.\d{2}` | Exactly these 2 params in this order and valid → build bar config (green ≥ 0, red < 0) and POST to `https://quickchart.io/chart` (552×300 png, white). Anything else → static `/mm/chart-unavailable.png` (no render). QuickChart error → same placeholder, `s-maxage=300`. | `image/png`, `Cache-Control: public, max-age=31536000, s-maxage=31536000, immutable` |
+| GET /api/mm/chart?l=&v= | `l` = `[A-Z]{2,5}` comma list (≤ 10), `v` = same count of `-?\d{1,4}\.\d{2}` | Exactly these 2 params in this order and valid → build bar config (green ≥ 0, red < 0) and POST to `https://quickchart.io/chart` (552×300 png, white). Anything else → 302 to static `/mm/chart-unavailable.png` (no render, cached 1 day). QuickChart error → same redirect, `s-maxage=300`. | `image/png`, `Cache-Control: public, max-age=31536000, s-maxage=31536000, immutable` |
 
 Rate limit: the one Hobby WAF rule covers `/api/mm/` except `/api/mm/chart`, 10 req / 60 s per IP → 429. Waitlist: promotion only on unsubscribe; when the owner raises the cap they flip `waitlist` rows by hand. Two simultaneous confirms can exceed the cap by one; Feed `active_count` = MIN(count, cap).
 
