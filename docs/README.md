@@ -10,4 +10,5 @@
 | [BUILD-ORDER.md](BUILD-ORDER.md) | Step-by-step build with pass/fail checks and pre-chosen fallbacks |
 | [IMPORT.md](IMPORT.md) | Build the Make scenario by importing the generated blueprint (default) |
 | [QA.md](QA.md) | Pass/fail checklist for every digest preview |
+| [SMOKE-TEST.md](SMOKE-TEST.md) | Live smoke test (2026-10-07): signup, confirm, unsubscribe; results and credits |
 | [MAIA-PROMPTS.md](MAIA-PROMPTS.md) | Step 8: test runs and credits (Steps 1–7, the Maia build, are superseded by IMPORT.md) |
