@@ -207,7 +207,7 @@ If C22 shows a different path, apply its fallback, then run `node tools/preview-
 
 ## Step 6. Maia Prompt 5: scenario settings (the schedule stays OFF)
 ```
-In "MarketMorning", change only scenario settings; do not add, remove or edit modules, and do not run or activate the scenario. Set: Data is confidential = On. Max number of cycles = 1. Sequential processing = Off. Allow storing of incomplete executions = Off. Schedule: Days of the week, Monday–Friday, at 08:00 (organization time zone America/New_York). Keep the scenario inactive.
+In "MarketMorning", change only scenario settings; do not add, remove or edit modules, and do not run or activate the scenario. Set: Data is confidential = On. Max number of cycles = 1. Sequential processing = Off. Allow storing of incomplete executions = Off. Schedule: Days of the week, Monday–Friday, at 00:00 (organization time zone America/New_York). Keep the scenario inactive.
 ```
 **For you to do manually:** confirm the organization time zone is America/New_York (C1 was done in BUILD-ORDER §1).
 **Check after Maia:** settings as listed, and the scenario toggle is still **OFF**. *0 run credits (plus Maia usage).*

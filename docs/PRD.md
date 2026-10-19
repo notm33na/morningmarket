@@ -1,12 +1,12 @@
 # MarketMorning PRD
 
-**Status:** spec v2, 2026-10-05. **Type:** portfolio demo by M&S Manger on Make.com. Not financial advice.
+**Status:** spec v2, 2026-10-05. **Type:** portfolio demo by M&S Manager on Make.com. Not financial advice.
 
 ## Problem, users, goals
-Busy readers want a 2-minute, trustworthy view of what the Federal Reserve is saying, what the latest official US data show, and where crypto stands, before their day starts. **Users:** members of the public who opt in on the site and read it daily. **Owner:** M&S Manger (operates it; private Dashboard).
+Busy readers want a 2-minute, trustworthy view of what the Federal Reserve is saying, what the latest official US data show, and where crypto stands, before their day starts. **Users:** members of the public who opt in on the site and read it daily. **Owner:** M&S Manager (operates it; private Dashboard).
 
 **Goals:**
-1. One accurate brief every weekday at 08:00 New York time, at $0.
+1. One accurate brief every weekday at 12:00 a.m. (midnight) New York time, at $0.
 2. Only data we are licensed to show, and no invented numbers or links.
 3. Show production habits on Make Free: credit budget, error handling, double opt-in and monitoring.
 
@@ -21,14 +21,14 @@ Busy readers want a 2-minute, trustworthy view of what the Federal Reserve is sa
 ## Functional requirements
 | # | Requirement | Acceptance criteria | Arch |
 |---|---|---|---|
-| FR1 | Make schedule Weekdays (Mon–Fri) 08:00, org time zone America/New_York; runs on market holidays. | Starts at 08:00 ET before and after the 2026-11-01 DST change. | §2 |
+| FR1 | Make schedule Weekdays (Mon–Fri) 00:00, org time zone America/New_York; runs on market holidays. | Starts at 00:00 ET before and after the 2026-11-01 DST change. | §2 |
 | FR2 | **Latest US economic data:** one BLS Public Data API request per run; CPI, unemployment rate, payroll jobs and PPI (latest, with BLS 1-month changes) shown with their month; "Source: U.S. Bureau of Labor Statistics, retrieved <date>" + BLS's "cannot vouch" statement. | Values equal the API response; hidden if the call fails. | §2 (2) |
 | FR3 | **From the Federal Reserve:** latest 3 speeches (date, linked title), "Source: Federal Reserve Board", not-affiliated note. | Links equal the feed's `link`s. | §2 (16–17) |
 | FR4 | **Crypto:** one CoinGecko Demo call; price and 24 h % for BTC, ETH, SOL, XRP, BNB, DOGE; "Prices as of <last_updated_at> ET"; "Powered by CoinGecko" + logo + link. | Numbers match the response; attribution visible. | §2 (3) |
 | FR5 | One Gemini call per run (plus one retry on the fallback model if it fails): a 3-sentence summary (Fed, data, crypto) and a crypto note. Only numbers from the input, exactly as given; no stock talk, causation or advice. | QA.md PASS on 5 live previews on 5 different days and on all `--sample` variants. | §2 (4–5), §3.2 |
 | FR6 | Deterministic parts: data table, speech list, crypto table, chart and all links come from the feeds, not AI. | – | template |
 | FR7 | QuickChart bar chart of crypto 24 h % via the cached `/api/mm/chart` proxy, data frozen in the URL. | Correct chart a day later in Gmail web and iOS Mail; alt text. | SITE, §5 |
-| FR8 | One email for all, from the owner's Gmail, BCC batches of 100 (To: owner). Footer: "For information only. Not financial advice." + unsubscribe link + "A portfolio demo by M&S Manger" + credits for the sections shown; `List-Unsubscribe` header. | No one sees another address. | §2 (6–8) |
+| FR8 | One email for all, from the owner's Gmail, BCC batches of 100 (To: owner). Footer: "For information only. Not financial advice." + unsubscribe link + "A portfolio demo by M&S Manager" + credits for the sections shown; `List-Unsubscribe` header. | No one sees another address. | §2 (6–8) |
 | FR9 | Fallbacks: Gemini fails → one retry on `GEMINI_FALLBACK_MODEL`, then a plain brief whose footer says it was not written by AI. A failed source hides only its own section. All sources empty or SEND_ENABLED off → no send + alert. | Forced failures behave as stated. | §6 |
 | FR10 | Site section "Live demo: MarketMorning": email + consent + privacy note → `pending` → double opt-in email; link (72 h) opens a page whose button (POST) confirms. | → `active` (or `waitlist` at cap); expired, reused or prefetched links change nothing. | SITE |
 | FR11 | Cap of 300 active; confirmations beyond go to `waitlist`; the oldest waitlisted is promoted on unsubscribe. | The 301st confirmation goes to `waitlist`. | SITE, §5 |
@@ -67,7 +67,7 @@ The owner sends ≤ ~95 other recipients/day. Gmail counts every BCC recipient. 
 10. **Tokens:** valid, expired, tampered, reused, wrong action, GET-only.
 11. **Cap 2** → the 3rd confirmation gets `waitlist`; an unsubscribe promotes it. **Rate limits:** 429 at 11 requests in 60 s; unsubscribe emails still send when the confirm budget is exhausted.
 12. **QA ([QA.md](QA.md)):** live and sample previews pass. **Rendering:** checked in Gmail web, Gmail Android, iOS Mail and Outlook web.
-13. **DST:** runs on 2026-10-30 and 2026-11-02 both start at 08:00 ET.
+13. **DST:** runs on 2026-10-30 and 2026-11-02 both start at 00:00 ET.
 
 ## Risks
 | Risk | Level | Mitigation |

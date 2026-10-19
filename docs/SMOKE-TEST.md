@@ -2,13 +2,13 @@
 
 Target: https://media-and-software-manger.vercel.app/#marketmorning (live). Synthetic data only: one disposable [mail.tm](https://mail.tm) inbox (`mms***@<mail.tm domain>`; used instead of `{{TEST_EMAIL+tag}}` so the test can read its own inbox without the owner's mail; mail.tm's API docs allow programmatic use, 8 QPS, attribution requested; the inbox was deleted after the test). Calls went to the same endpoints the page and emails use (SITE.md). No live system was changed beyond the test subscriber row and its TxLog rows.
 
-**Note for IT:** signing up sends a **confirmation email first** (double opt-in). The digest arrives at the **next scheduled run** (weekdays 08:00 New York), not straight after signup. This is by design.
+**Note for IT:** signing up sends a **confirmation email first** (double opt-in). The digest arrives at the **next scheduled run** (weekdays 00:00 New York, 09:00 PKT; 10:00 PKT from 2026-11-02), not straight after signup. This is by design.
 
 ## Results
 | # | Check | Result | Evidence |
 |---|---|---|---|
 | 1a | Signup accepted | PASS | `POST /api/mm/subscribe` → 200 `{"ok":true,"message":"Check your inbox to confirm."}` (18:56:03 UTC) |
-| 1b | Confirmation email arrives | PASS | "Confirm your MarketMorning subscription" in the inbox after 10 s; footer "Not financial advice" + "portfolio demo by M&S Manger" and the 72-hour expiry note present |
+| 1b | Confirmation email arrives | PASS | "Confirm your MarketMorning subscription" in the inbox after 10 s; footer "Not financial advice" + "portfolio demo by M&S Manager" and the 72-hour expiry note present |
 | 1c | Confirm flow (page + POST button) | PASS | `GET /api/mm/confirm?t=…` → 200, `no-store`, hidden-field POST form (link scanners can't confirm). `POST /api/mm/confirm` → 303 `/?mm=confirmed#marketmorning` |
 | 1d | Token single use | PASS | Replaying the same token → 303 `/?mm=invalid#marketmorning`, so the row's `token_nonce` was rotated in the Sheet |
 | 1e | Sheet status = `active` | Needs human glance | `confirmed` is only returned after `status` is written as `active` (`waitlisted` if at the cap; confirm.js), but the repo has no local read path: the Apps Script secret lives only in Vercel env. Owner: check the Subscribers row for `mms…@` |
@@ -31,6 +31,6 @@ Target: https://media-and-software-manger.vercel.app/#marketmorning (live). Synt
 | F2 | No safe read path for status checks, so smoke tests can't verify the Sheet. | Owner-only `GET /api/mm/status?h=<email_hash>` behind a separate `MM_ADMIN_TOKEN` returning just `status`, or a read-only check in the Apps Script by hash. |
 
 ## Vercel Hobby plan
-Honest line: Vercel's Fair Use Guidelines limit Hobby to "non-commercial personal use only" and count "advertising the sale of a product or service" as commercial, so a portfolio that markets M&S Manger's Make services is likely outside Hobby terms; owner decision (ask Vercel Support, or accept Pro despite the free-tier rule).
+Honest line: Vercel's Fair Use Guidelines limit Hobby to "non-commercial personal use only" and count "advertising the sale of a product or service" as commercial, so a portfolio that markets M&S Manager's Make services is likely outside Hobby terms; owner decision (ask Vercel Support, or accept Pro despite the free-tier rule).
 
 Sources: https://vercel.com/docs/limits/fair-use-guidelines · https://www.make.com/en/pricing · https://developers.make.com/api-documentation/authentication/create-authentication-token · https://developers.make.com/api-documentation/api-reference/scenarios · https://docs.mail.tm

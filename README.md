@@ -1,15 +1,15 @@
 # MarketMorning
 
 **A daily AI brief on the Fed, US economic data and crypto, built on Make.com for $0.**
-> Portfolio demo by M&S Manger. For information only. Not financial advice.
+> Portfolio demo by M&S Manager. For information only. Not financial advice.
 
-**Try it live:** [media-and-software-manger.vercel.app](https://media-and-software-manger.vercel.app/#marketmorning)
+**Try it live:** [media-and-software-manager.vercel.app](https://media-and-software-manager.vercel.app/#marketmorning) · **Case study:** [M&S Manager automation page](https://media-and-software-manager.vercel.app/automation.html#work)
 
 ## The problem
 People who follow the economy and crypto want a two-minute, trustworthy answer to "what's the Fed saying, what do the latest numbers say, and where is crypto?" before work. Apps are noisy, newsletters are paid, and AI summaries often make up numbers.
 
 ## What it does
-Every weekday at 08:00 New York time, one email reaches every subscriber:
+Every weekday at 12:00 a.m. (midnight) New York time, one email reaches every subscriber:
 - a 3-sentence AI summary,
 - the **latest official US data** from the Bureau of Labor Statistics: inflation (CPI), the unemployment rate, payroll jobs and producer prices, each with its month,
 - the **latest Federal Reserve speeches**, dated and linked,
@@ -31,7 +31,7 @@ Numbers come from the sources, never from the AI. If the AI fails, a plain brief
 ```mermaid
 flowchart LR
   V[Visitor] --> S[Site + Vercel functions] -->|Apps Script web app| G[(Google Sheet)]
-  M[Make: 1 scenario, Mon–Fri 08:00 ET] --> G
+  M[Make: 1 scenario, Mon–Fri 00:00 ET] --> G
   M --> B[BLS Public Data API] & FR[Fed speeches] & C[CoinGecko crypto] & AI[Gemini] & SL[Slack alert]
   M -->|Gmail, BCC batches| R[Subscribers]
 ```

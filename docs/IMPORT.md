@@ -28,7 +28,7 @@ Create a new scenario › **⋯** › **Import Blueprint** › choose the file �
 | 5 | Data structure: **Add › Generator** (JSON) `{"source":"","summary":"","crypto_note":""}`. Then open module 5's Resume handler and check source = `fallback`, summary = `` {{2.`10`}} `` |
 | 17 | Data structure: **Add › Generate** (XML); paste the file *contents* of `samples/fed-speeches.sample.xml` without the `<?xml …?>` line and the comment, not its path |
 | Settings | Max cycles 1, sequential off, incomplete executions off; **Data is confidential: off while testing** (with it on, run logs show no input/output), **on** before go-live (BUILD-ORDER §7) |
-| Schedule | Days of the week Mon–Fri, 08:00. Keep the scenario OFF until BUILD-ORDER §7 |
+| Schedule | Days of the week Mon–Fri, 00:00. Keep the scenario OFF until BUILD-ORDER §7 |
 
 ## 4. Import checks (0 credits)
 These are the parts of the blueprint format that can't be checked locally. If one fails, fix it in Make by hand, using the value in the "Expect" column.

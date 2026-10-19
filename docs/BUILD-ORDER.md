@@ -81,7 +81,7 @@ Turn **Data is confidential** back on (it is off during testing). Activate the s
 *Decision 2026-10-06:* the owner went live the same day. The scenario now runs on its own Make account (1,000 credits, not shared with LeadFlow), so October's estimated ~370–440 credits (tests + 18 weekdays) can pass the 400 target once without hitting Make's limit; from November it is back to ≤ 345/month.
 
 Reminders: reauthorize Make Gmail every 5 months; monthly purge (Dashboard B9); quarterly CoinGecko terms review.
-- **C14** Runs on Fri 2026-10-30 and Mon 2026-11-02 both start at 08:00 ET. *Fallback:* set the schedule time manually after each DST change.
+- **C14** Runs on Fri 2026-10-30 and Mon 2026-11-02 both start at 00:00 ET. *Fallback:* set the schedule time manually after each DST change.
 
 ## 8. Publish (Dev + Owner)
 Export the blueprint to `blueprints/raw/`, run `node tools/scrub-blueprint.mjs` (must exit 0), review the scrubbed file (on the first real export, also check no numeric `key`/`keychain` fields remain), run the secret scan `git grep -nIE "AIza|CG-[0-9A-Za-z]{15}|xox[abprs]-|ya29.|@gmail.com|gemini-[0-9]"` (must print nothing), push the public repo, add README screenshots, record the Loom.

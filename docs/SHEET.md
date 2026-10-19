@@ -12,7 +12,7 @@ Built by `tools/sheet-setup.gs` (keep both in sync; re-running it never overwrit
 | TX_UNSUB_CAP | 30 (unsubscribe emails per rolling 24 h) |
 | GEMINI_MODEL | same value as `GEMINI_MODEL` in .env |
 | GEMINI_FALLBACK_MODEL | same value as `GEMINI_FALLBACK_MODEL` in .env (used by the retry, module 15) |
-| SITE_URL | https://media-and-software-manger.vercel.app |
+| SITE_URL | https://media-and-software-manager.vercel.app |
 | OWNER_EMAIL | your Gmail address |
 | FALLBACK_SUMMARY | Today's AI summary is unavailable. The sections below come straight from official and licensed sources. |
 

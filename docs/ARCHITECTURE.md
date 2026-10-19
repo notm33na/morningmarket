@@ -5,11 +5,11 @@ Portfolio demo, not financial advice. Sheet: [SHEET.md](SHEET.md). Data licensin
 ## 1. System
 ```mermaid
 flowchart LR
-  V[Visitor] -->|form| S[Site section<br/>media-and-software-manger.vercel.app]
+  V[Visitor] -->|form| S[Site section<br/>media-and-software-manager.vercel.app]
   S -->|/api/mm/*| F[Vercel functions]
   F -->|Apps Script web app, shared secret| G[(Google Sheet)]
   F -->|Gmail SMTP| E1[Confirm / unsubscribe emails]
-  M[Make scenario<br/>Mon–Fri 08:00 America/New_York] -->|read Feed, write SendLog| G
+  M[Make scenario<br/>Mon–Fri 00:00 America/New_York] -->|read Feed, write SendLog| G
   M --> BL[BLS Public Data API v2]
   M --> FR[Federal Reserve speeches RSS]
   M --> CG[CoinGecko Demo API]
@@ -29,7 +29,7 @@ flowchart LR
   M1 -.error.-> M13[13 Slack alert]
   M4 -.error.-> S1[14 Sleep 10s] --> M4r[15 fallback model] -.-> RES[Resume]
 ```
-**Schedule:** Weekdays (Mon–Fri), 08:00, organization time zone America/New_York (DST-aware; runs on market holidays too).
+**Schedule:** Weekdays (Mon–Fri), 00:00 (12:00 a.m.), organization time zone America/New_York (DST-aware; runs on market holidays too).
 
 **Reference build note:** in the reference scenario ID 1 was consumed by a deleted placeholder, so every **Make ID = label number + 1** ("1 Read Feed" = ID 2 … "17 Parse Fed RSS" = ID 18; routers/directives ≥ 19). The table below lists modules by **label number**; all mappings (template, prompts, MAIA-PROMPTS pastes) use the real Make IDs.
 
@@ -151,7 +151,7 @@ Gmail, not credits, limits the subscriber count. **Runtime** worst case ≈ 20 �
 | Fed speeches RSS (public domain, cite the Board, no seal) | [25], [27] | Decided (C22, C23) |
 | Crypto from CoinGecko Demo API with "Powered by CoinGecko" + logo + link | [1], [2], [3] | Decided |
 | BEA not used: +2 credits would exceed 400/month worst case | – | Decided |
-| Org time zone America/New_York; schedule Weekdays 08:00 | [7], [8] | Decided |
+| Org time zone America/New_York; schedule Weekdays 00:00 (changed from 08:00 on 2026-10-14) | [7], [8] | Decided |
 | Make Free: 2 active scenarios, 1,000 credits, 5-min max run | [9] | Decided |
 | Routers and error-handler activation free; no iterators/aggregators | [10] | Decided |
 | Models = `GEMINI_MODEL` + `GEMINI_FALLBACK_MODEL`; `generateContent` + `responseMimeType` + `responseJsonSchema` | [11], [12] | Decided (C6, C7) |

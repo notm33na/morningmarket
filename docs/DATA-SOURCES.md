@@ -57,7 +57,7 @@ Measured live on 2026-10-05; "weekdays with items" = distinct weekdays with a ne
 Not one response with articles across four networks.
 
 ## Decision (owner, 2026-10-05: "Fed, no paid APIs")
-- **No market headlines.** GDELT is dropped: not reliable from any network, so a daily 08:00 email can't depend on it. No free commercial API qualifies.
+- **No market headlines.** GDELT is dropped: not reliable from any network, so a daily scheduled email can't depend on it. No free commercial API qualifies.
 - **Fed speeches RSS:** a fixed section with the latest 3 speeches, linked and dated, "Source: Federal Reserve Board" (no seal).
 - **BLS Public Data API v2** (free registration key): one POST returns the latest CPI, unemployment rate, payroll employment and PPI with BLS-calculated 1-month changes. Shown verbatim with month and "(p)" for preliminary, plus "Source: U.S. Bureau of Labor Statistics, retrieved <date> via the BLS Public Data API" and BLS's statement that "BLS.gov cannot vouch for the data or analyses derived from these data after the data have been retrieved from BLS.gov" ([API terms](https://www.bls.gov/developers/termsOfService.htm): "users of the public API should cite the date that data were accessed"; no BLS logo). The BLS RSS feed was tried first but BLS bot protection returns 403 "Access Denied" to Make's servers (2026-10-05), while the API, built for automated use, answers.
 - **Not used:** BEA (+2 credits would push the worst case to 414/month), SEC (mostly enforcement), Fed press releases (mostly bank approvals), Treasury (no quotable policy).

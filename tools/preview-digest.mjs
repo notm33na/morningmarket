@@ -53,7 +53,7 @@ function buildFeed(env) {
     batch_1: '{{TEST_EMAIL+mm1}},{{TEST_EMAIL+mm2}},{{TEST_EMAIL+mm3}}',
     batch_2: '',
     batch_3: '',
-    site_url: env.SITE_URL || 'https://media-and-software-manger.vercel.app',
+    site_url: env.SITE_URL || 'https://media-and-software-manager.vercel.app',
     owner_email: '{{TEST_EMAIL}}',
     fallback_summary: fallbackSummary,
   };
