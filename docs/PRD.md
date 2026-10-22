@@ -46,7 +46,7 @@ Busy readers want a 2-minute, trustworthy view of what the Federal Reserve is sa
   - Every dataset shown is public domain or licensed for display, with the required credit: BLS, the Federal Reserve Board, CoinGecko.
 - **Privacy:**
   - Store only email, status, timestamps and nonce (TxLog keeps a hash only).
-  - Processors are Google, Make (scenario set to "Data is confidential") and Vercel. Subscriber data never goes to Gemini, Slack or analytics.
+  - Processors are Google, Make (scenario set to "Data is confidential") and Cloudflare. Subscriber data never goes to Gemini, Slack or analytics.
   - Purge unsubscribed rows and rows pending > 7 days monthly. The form carries a privacy note.
 - **Security:** no secrets in files; HMAC-SHA256 tokens with single-use nonces; state changes only via POST; Sheet writes as RAW.
 - **Cost:** $0, no paid APIs.
