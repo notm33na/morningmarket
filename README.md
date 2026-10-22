@@ -3,7 +3,7 @@
 **A daily AI brief on the Fed, US economic data and crypto, built on Make.com for $0.**
 > Portfolio demo by M&S Manager. For information only. Not financial advice.
 
-**Try it live:** [media-and-software-manager.vercel.app](https://media-and-software-manager.vercel.app/#marketmorning) · **Case study:** [M&S Manager automation page](https://media-and-software-manager.vercel.app/automation.html#work)
+**Try it live:** [www.mediaandsoftwaremanager.com](https://www.mediaandsoftwaremanager.com/#marketmorning) · **Case study:** [M&S Manager automation page](https://www.mediaandsoftwaremanager.com/automation#work)
 
 ## The problem
 People who follow the economy and crypto want a two-minute, trustworthy answer to "what's the Fed saying, what do the latest numbers say, and where is crypto?" before work. Apps are noisy, newsletters are paid, and AI summaries often make up numbers.
@@ -30,12 +30,12 @@ Numbers come from the sources, never from the AI. If the AI fails, a plain brief
 ## Architecture
 ```mermaid
 flowchart LR
-  V[Visitor] --> S[Site + Vercel functions] -->|Apps Script web app| G[(Google Sheet)]
+  V[Visitor] --> S[Site + Cloudflare Worker] -->|Apps Script web app| G[(Google Sheet)]
   M[Make: 1 scenario, Mon–Fri 00:00 ET] --> G
   M --> B[BLS Public Data API] & FR[Fed speeches] & C[CoinGecko crypto] & AI[Gemini] & SL[Slack alert]
   M -->|Gmail, BCC batches| R[Subscribers]
 ```
-- **Signup:** double opt-in, signed expiring links, honeypot and rate limit. It runs as Vercel functions that reach the Sheet through a small Apps Script web app (no Google Cloud project), and never uses Make credits.
+- **Signup:** double opt-in, signed expiring links, honeypot and rate limit. It runs as a Cloudflare Worker that reaches the Sheet through a small Apps Script web app (no Google Cloud project), and never uses Make credits.
 - **Brief:** one Make scenario reads three official or licensed feeds and makes one Gemini call. A lighter model retries if that call fails. It then sends up to 3 BCC batches. That is 12 credits on a normal run and 15 in the worst case, so at most 345 a month.
 - **Limits:** the 300-subscriber cap comes from Gmail's 500 recipients per day. People who sign up after that go on a waitlist and are promoted automatically.
 - **Build by import:** `node tools/build-blueprint.mjs` generates the whole scenario as a Make blueprint (IDs, expressions, email HTML and prompt included), so a rebuild is one import, not hours of clicking.
@@ -44,7 +44,7 @@ flowchart LR
 Details: [PRD](docs/PRD.md) · [Architecture](docs/ARCHITECTURE.md) · [Data licensing](docs/DATA-SOURCES.md) · [Sheet](docs/SHEET.md) · [Site functions](docs/SITE.md) · [Build order](docs/BUILD-ORDER.md) · [Import guide](docs/IMPORT.md) · [QA](docs/QA.md)
 
 ## Tech stack
-Make.com (Free) · Google Sheets + Apps Script · Gemini API (free tier, structured output) · BLS Public Data API · Federal Reserve RSS · CoinGecko API (Demo) · QuickChart · Gmail · Vercel serverless functions (Node) · Slack
+Make.com (Free) · Google Sheets + Apps Script · Gemini API (free tier, structured output) · BLS Public Data API · Federal Reserve RSS · CoinGecko API (Demo) · QuickChart · Gmail · Cloudflare Workers · Slack
 
 ## Notes
 - Economic data: U.S. Bureau of Labor Statistics. Fed speeches: Federal Reserve Board. MarketMorning is not affiliated with either. Crypto data [powered by CoinGecko](https://www.coingecko.com/en/api).

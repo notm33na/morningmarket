@@ -5,8 +5,8 @@ Portfolio demo, not financial advice. Sheet: [SHEET.md](SHEET.md). Data licensin
 ## 1. System
 ```mermaid
 flowchart LR
-  V[Visitor] -->|form| S[Site section<br/>media-and-software-manager.vercel.app]
-  S -->|/api/mm/*| F[Vercel functions]
+  V[Visitor] -->|form| S[Site section<br/>www.mediaandsoftwaremanager.com]
+  S -->|/api/mm/*| F[Cloudflare Worker]
   F -->|Apps Script web app, shared secret| G[(Google Sheet)]
   F -->|Gmail SMTP| E1[Confirm / unsubscribe emails]
   M[Make scenario<br/>Mon–Fri 00:00 America/New_York] -->|read Feed, write SendLog| G
@@ -70,8 +70,8 @@ Inline expressions (Gmail "message ID" output shown as `7.id`):
 | Tab | Columns | Writer |
 |---|---|---|
 | Config | key, value: SEND_ENABLED, SUBSCRIBER_CAP=300, BATCH_SIZE=100, TX_CONFIRM_CAP=70, TX_UNSUB_CAP=30, GEMINI_MODEL, GEMINI_FALLBACK_MODEL, SITE_URL, OWNER_EMAIL, FALLBACK_SUMMARY | Owner |
-| Subscribers | email, status, created_at, confirmed_at, unsubscribed_at, token_nonce | Vercel |
-| TxLog | sent_at, type, email_hash | Vercel |
+| Subscribers | email, status, created_at, confirmed_at, unsubscribed_at, token_nonce | Cloudflare Worker |
+| TxLog | sent_at, type, email_hash | Cloudflare Worker |
 | SendLog | date, subscribers, batches, status, error | Make |
 | Feed | 12 computed keys (A–L) | Formulas |
 | Dashboard | counts, tables, 3 charts | Formulas |
@@ -95,7 +95,7 @@ Missing items render as empty lines. Fed titles go through `escapeHTML` and back
 
 Each section, its footer credit and the "Summary written by AI…" line appear only when true.
 
-## 4. Site and Vercel functions
+## 4. Site and Cloudflare Worker
 Spec in [SITE.md](SITE.md):
 - `POST /api/mm/subscribe`
 - `GET|POST /api/mm/confirm`
@@ -103,7 +103,7 @@ Spec in [SITE.md](SITE.md):
 - `GET|POST /api/mm/unsubscribe/confirm`
 - `GET /api/mm/chart`
 
-Tokens are HMAC-signed, expiring and single-use, and state changes only on POST. Abuse controls: honeypot, MX check, WAF rate limit and rolling email budgets. The functions read and write the Sheet through an Apps Script web app bound to it (`tools/site-sheet-api.gs`: fixed operations, shared secret, plain-text writes), so no Google Cloud project is needed. The chart proxy renders QuickChart once per CDN region and serves a placeholder for anything invalid.
+Tokens are HMAC-signed, expiring and single-use, and state changes only on POST. Abuse controls: honeypot, MX check, per-IP rate limit and rolling email budgets. The Worker reads and writes the Sheet through an Apps Script web app bound to it (`tools/site-sheet-api.gs`: one locked, idempotent operation per action, shared secret, plain-text writes), so no Google Cloud project is needed. The chart proxy renders QuickChart once per Cloudflare location and serves a placeholder for anything invalid.
 
 ## 5. Budgets
 **Credits per run:**
@@ -139,7 +139,7 @@ Gmail, not credits, limits the subscriber count. **Runtime** worst case ≈ 20 �
 | Gemini output (5) | bad/truncated JSON | Resume with fallback fields. |
 | Gmail (6–8) | any error | Resume; other routes still run; `partial`/`failed`; Slack shows it. |
 | SendLog/Slack | error | Resume/Ignore. |
-| Vercel → Sheets / SMTP | error | 500 or `?mm=error` / same 200 (no status leak); see SITE.md. |
+| Worker → Sheet / SMTP | error | 500 or `?mm=error` / same 200 (no status leak); see SITE.md. |
 | QuickChart | 429/5xx | Placeholder PNG, 5-min cache; alt text. |
 
 ## 7. Decisions
@@ -159,12 +159,12 @@ Gmail, not credits, limits the subscriber count. **Runtime** worst case ≈ 20 �
 | Gmail 500/day, 500/message → cap 300, batch 100 | [14] | Decided |
 | Make Gmail: BCC + additional headers → `List-Unsubscribe` (URL only) | [15] | Decided (C8) |
 | Make Gmail and Sheets via Make's built-in Google sign-in; reauth every 6 months | [16] | Decided |
-| Vercel → Sheet via an Apps Script web app (owner: no Google Cloud project) | [17] | Decided |
+| Worker → Sheet via an Apps Script web app (owner: no Google Cloud project) | [17] | Decided |
 | Transactional mail: nodemailer, smtp.gmail.com:465, app password | [18] | Decided (C10) |
 | Chart via immutable, CDN-cached proxy | [19], [20], [21] | Decided (C16) |
 | Confirm/unsubscribe change state only on POST | owner choice (prevents link-scanner prefetch) | Decided |
-| Per-IP limit via Vercel WAF rate-limit rule (Hobby: 1 rule) | [22] | Decided (C11) |
+| Per-IP limit via a Workers rate-limit binding (10 req / 60 s; was a Vercel WAF rule) | [22] | Decided (C11) |
 | API keys in Make API-key keychains, not in the blueprint | [23] | Decided |
 | New Slack channel #marketmorning-alerts | owner choice | Decided |
 
-Refs [4]–[6] and checks C3–C5, C12 were retired with the headline design. [1] coingecko.com/en/api_terms · [2] coingecko.com/en/api/pricing · [3] brand.coingecko.com/resources/attribution-guide · [7] help.make.com/manage-time-zones · [8] help.make.com/schedule-a-scenario · [9] make.com/en/pricing · [10] help.make.com/how-features-use-credits · [11] ai.google.dev/gemini-api/docs/models · [12] ai.google.dev/api/generate-content · [13] ai.google.dev/gemini-api/docs/pricing · [14] support.google.com/mail/answer/22839 · [15] apps.make.com/gmail-modules · [16] apps.make.com/google-email · [17] developers.google.com/apps-script/guides/web · [18] support.google.com/mail/answer/185833 · [19] quickchart.io/pricing · [20] community.quickchart.io/t/rate-limits-for-quickchart-free-plan/722 · [21] vercel.com/docs/caching/cdn-cache · [22] vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting · [23] apps.make.com/api-key-authentication-type · [24] bls.gov/developers/api_signature_v2.htm · [25] federalreserve.gov/feeds/feeds.htm · [26] bls.gov/developers/termsOfService.htm · [27] federalreserve.gov/disclaimer.htm
+Refs [4]–[6] and checks C3–C5, C12 were retired with the headline design. [1] coingecko.com/en/api_terms · [2] coingecko.com/en/api/pricing · [3] brand.coingecko.com/resources/attribution-guide · [7] help.make.com/manage-time-zones · [8] help.make.com/schedule-a-scenario · [9] make.com/en/pricing · [10] help.make.com/how-features-use-credits · [11] ai.google.dev/gemini-api/docs/models · [12] ai.google.dev/api/generate-content · [13] ai.google.dev/gemini-api/docs/pricing · [14] support.google.com/mail/answer/22839 · [15] apps.make.com/gmail-modules · [16] apps.make.com/google-email · [17] developers.google.com/apps-script/guides/web · [18] support.google.com/mail/answer/185833 · [19] quickchart.io/pricing · [20] community.quickchart.io/t/rate-limits-for-quickchart-free-plan/722 · [21] vercel.com/docs/caching/cdn-cache · [22] developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit · [23] apps.make.com/api-key-authentication-type · [24] bls.gov/developers/api_signature_v2.htm · [25] federalreserve.gov/feeds/feeds.htm · [26] bls.gov/developers/termsOfService.htm · [27] federalreserve.gov/disclaimer.htm

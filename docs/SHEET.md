@@ -12,13 +12,13 @@ Built by `tools/sheet-setup.gs` (keep both in sync; re-running it never overwrit
 | TX_UNSUB_CAP | 30 (unsubscribe emails per rolling 24 h) |
 | GEMINI_MODEL | same value as `GEMINI_MODEL` in .env |
 | GEMINI_FALLBACK_MODEL | same value as `GEMINI_FALLBACK_MODEL` in .env (used by the retry, module 15) |
-| SITE_URL | https://media-and-software-manager.vercel.app |
+| SITE_URL | https://www.mediaandsoftwaremanager.com |
 | OWNER_EMAIL | your Gmail address |
 | FALLBACK_SUMMARY | Today's AI summary is unavailable. The sections below come straight from official and licensed sources. |
 
 Below, `cfg("KEY")` means `VLOOKUP("KEY",Config!$A:$B,2,FALSE)`.
 
-## Subscribers (written only by the Vercel function)
+## Subscribers (written only by the site Worker, via the Apps Script web app)
 `email | status | created_at | confirmed_at | unsubscribed_at | token_nonce` (A–F). `status` ∈ pending, active, waitlist, unsubscribed. Timestamps ISO 8601 UTC. `token_nonce` 32 hex chars, rotated after every token use.
 
 ## TxLog (written by the function, one row per transactional email)

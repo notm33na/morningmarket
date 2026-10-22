@@ -15,7 +15,7 @@ const CONFIG_DEFAULTS = [
   ['TX_UNSUB_CAP', 30],
   ['GEMINI_MODEL', '[GEMINI_MODEL]'],
   ['GEMINI_FALLBACK_MODEL', '[GEMINI_FALLBACK_MODEL]'],
-  ['SITE_URL', 'https://media-and-software-manager.vercel.app'],
+  ['SITE_URL', 'https://www.mediaandsoftwaremanager.com'],
   ['OWNER_EMAIL', '[YOUR EMAIL]'],
   ['FALLBACK_SUMMARY', "Today's AI summary is unavailable. The sections below come straight from official and licensed sources."],
 ];
