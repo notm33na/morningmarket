@@ -1,9 +1,9 @@
 # MarketMorning
 
 **A daily AI brief on the Fed, US economic data and crypto, built on Make.com for $0.**
-> Portfolio demo by M&S Manager. For information only. Not financial advice.
+> Portfolio demo by M&S Manger. For information only. Not financial advice.
 
-**Try it live:** [www.mediaandsoftwaremanager.com](https://www.mediaandsoftwaremanager.com/#marketmorning) · **Case study:** [M&S Manager automation page](https://www.mediaandsoftwaremanager.com/automation#work)
+**Try it live:** [www.mediaandsoftwaremanager.com](https://www.mediaandsoftwaremanager.com/#marketmorning) · **Case study:** [M&S Manger automation page](https://www.mediaandsoftwaremanager.com/automation#work)
 
 ## The problem
 People who follow the economy and crypto want a two-minute, trustworthy answer to "what's the Fed saying, what do the latest numbers say, and where is crypto?" before work. Apps are noisy, newsletters are paid, and AI summaries often make up numbers.

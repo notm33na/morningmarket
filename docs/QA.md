@@ -9,7 +9,7 @@ For each preview HTML (`tests/previews/*.html`) and its `.input.json`:
 - Fed speeches are mentioned in AI text only by speaker name, topic and date as given in their titles (no added roles or content); their dates and any numbers inside speech titles, BLS values and crypto values are the only allowed numbers (unit words like "1-month" or "24 hours" from the input labels are fine).
 - No implied causation between speeches, data and price moves, and no interpretation of data as good or bad.
 - When CoinGecko data is empty, no crypto table, chart image or crypto note is rendered; when BLS or the Fed feed is empty, its section renders no markup (no `<a href="">`).
-- Present: footer "For information only. Not financial advice.", an unsubscribe link, "A portfolio demo by M&S Manager", "Powered by CoinGecko" next to the crypto data (when shown), "Source: U.S. Bureau of Labor Statistics" next to the data section (when shown), and "Source: Federal Reserve Board" next to the Fed section (when shown).
+- Present: footer "For information only. Not financial advice.", an unsubscribe link, "A portfolio demo by M&S Manger", "Powered by CoinGecko" next to the crypto data (when shown), "Source: U.S. Bureau of Labor Statistics" next to the data section (when shown), and "Source: Federal Reserve Board" next to the Fed section (when shown).
 - Email-safe HTML: inline CSS, table layout, no JavaScript, max width 600px, every image has alt text, no leftover `{{` placeholders.
 - The tone stays factual: no buy/sell/hold recommendations or predictions.
 

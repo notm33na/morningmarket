@@ -1,9 +1,9 @@
 # MarketMorning PRD
 
-**Status:** spec v2, 2026-10-05. **Type:** portfolio demo by M&S Manager on Make.com. Not financial advice.
+**Status:** spec v2, 2026-10-05. **Type:** portfolio demo by M&S Manger on Make.com. Not financial advice.
 
 ## Problem, users, goals
-Busy readers want a 2-minute, trustworthy view of what the Federal Reserve is saying, what the latest official US data show, and where crypto stands, before their day starts. **Users:** members of the public who opt in on the site and read it daily. **Owner:** M&S Manager (operates it; private Dashboard).
+Busy readers want a 2-minute, trustworthy view of what the Federal Reserve is saying, what the latest official US data show, and where crypto stands, before their day starts. **Users:** members of the public who opt in on the site and read it daily. **Owner:** M&S Manger (operates it; private Dashboard).
 
 **Goals:**
 1. One accurate brief every weekday at 12:00 a.m. (midnight) New York time, at $0.
@@ -28,7 +28,7 @@ Busy readers want a 2-minute, trustworthy view of what the Federal Reserve is sa
 | FR5 | One Gemini call per run (plus one retry on the fallback model if it fails): a 3-sentence summary (Fed, data, crypto) and a crypto note. Only numbers from the input, exactly as given; no stock talk, causation or advice. | QA.md PASS on 5 live previews on 5 different days and on all `--sample` variants. | §2 (4–5), §3.2 |
 | FR6 | Deterministic parts: data table, speech list, crypto table, chart and all links come from the feeds, not AI. | – | template |
 | FR7 | QuickChart bar chart of crypto 24 h % via the cached `/api/mm/chart` proxy, data frozen in the URL. | Correct chart a day later in Gmail web and iOS Mail; alt text. | SITE, §5 |
-| FR8 | One email for all, from the owner's Gmail, BCC batches of 100 (To: owner). Footer: "For information only. Not financial advice." + unsubscribe link + "A portfolio demo by M&S Manager" + credits for the sections shown; `List-Unsubscribe` header. | No one sees another address. | §2 (6–8) |
+| FR8 | One email for all, from the owner's Gmail, BCC batches of 100 (To: owner). Footer: "For information only. Not financial advice." + unsubscribe link + "A portfolio demo by M&S Manger" + credits for the sections shown; `List-Unsubscribe` header. | No one sees another address. | §2 (6–8) |
 | FR9 | Fallbacks: Gemini fails → one retry on `GEMINI_FALLBACK_MODEL`, then a plain brief whose footer says it was not written by AI. A failed source hides only its own section. All sources empty or SEND_ENABLED off → no send + alert. | Forced failures behave as stated. | §6 |
 | FR10 | Site section "Live demo: MarketMorning": email + consent + privacy note → `pending` → double opt-in email; link (72 h) opens a page whose button (POST) confirms. | → `active` (or `waitlist` at cap); expired, reused or prefetched links change nothing. | SITE |
 | FR11 | Cap of 300 active; confirmations beyond go to `waitlist`; the oldest waitlisted is promoted on unsubscribe. | The 301st confirmation goes to `waitlist`. | SITE, §5 |
